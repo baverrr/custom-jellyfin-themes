@@ -116,6 +116,7 @@ Pick one per user in **Settings > Display > Theme**, and again under **Server Da
 | **Live TV Guide** | The grid, the "on now" cells, channel numbers, LIVE / NEW tags |
 | **Scrollbars** | Colour and shape, up to Desktop 95's classic chequered bar |
 | **Server Dashboard** | Every admin page: the side drawer, panels and cards, settings forms, buttons, tables and the Activity list |
+| **Screensavers** | One animated scene per theme, built from your own posters and backdrops (optional, see below) |
 
 ## Install
 
@@ -154,6 +155,26 @@ copy the same way):
 JavaScript Injector plugin (`src`: `/web/themes/homepage/effects.js`). It adds each theme's motion: Matrix rain,
 a lock-on reticle, falling petals and more. It pauses during playback, in hidden tabs and with reduced motion.
 
+**Optional: themed screensavers.** Load [`themes/screensavers.js`](themes/screensavers.js) the same way (`src`:
+`/web/themes/homepage/screensavers.js`), then pick one in **Settings > Display > Screensaver**. Each is made from
+random movies and shows in your library:
+
+| Screensaver | What happens |
+|---|---|
+| Neon Arcade: Night Drive | A synthwave drive at 120 bpm with your posters as neon billboards, each scoring points as it passes |
+| Phosphor: ASCII Decompiler | A mainframe types out the job, decodes a backdrop into ASCII on a green screen, then rains it away |
+| Cosmos: Library Orrery | Posters wrapped round spinning planets, lit by a holographic sun, with foil rings, moons and comets |
+| Blueprint: Plotter | A pen plotter traces each poster as line art, with dimensions, a cross-section and a title block |
+| Lava Lamp: Wax Cinema | Metaball wax with heat physics; the picture only shows through the wax, bent like a lens |
+| Desktop 95: Meltdown | Posters open in player windows, one hangs and smears across the screen, then a defragmenter sorts the mess by colour |
+| Mission HUD: Target Lock | A gimbal camera locks onto the busiest spots of a backdrop, with radar, tapes and telemetry |
+| Thermal Vision: Heat Signature | Backdrops as heat maps with rising plumes, live max/min tracking and palette wipes |
+| Cyberpunk: Neural Sort | A poster cut into scrambled strips that a visible sorting algorithm puts back together |
+| Sakura: Petal Mosaic | About 2,400 petals drift on the wind, gather into the poster in woodblock colours, then a gust scatters them |
+
+**Homepage: match my theme** picks the one for whichever theme is active. Desktop 95's own idle screensaver stands down
+once one is picked, and its Start menu's Screensaver item opens Meltdown.
+
 **5. Pick a theme** in Settings > Display > Theme, and the same or another one in **Server Dashboard theme** for
 the admin pages. Then **hard-refresh** (Ctrl+Shift+R). Jellyfin sends no cache headers for these files, so
 browsers keep old copies until then.
@@ -182,6 +203,7 @@ themes/
 ├── extras-base.css    badges, progress, cast row, Live TV Guide, scrollbars (--ex-*)
 ├── dashboard-base.css Server Dashboard: Jellyfin's MUI palette and panels (--db-*)
 ├── effects.js / .css  optional animated effects
+├── screensavers.js    optional themed screensavers
 ├── fonts/             JetBrains Mono, latin subset (OFL)
 └── <theme>/
     ├── theme.css      that theme's values and decorations

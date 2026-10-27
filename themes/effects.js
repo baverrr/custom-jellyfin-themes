@@ -199,7 +199,7 @@
       const item = (label, fn) => { const li = el("li"), b = el("button", null, label); b.type = "button"; b.onclick = () => { close(); fn(); }; li.append(b); return li; };
       const open = () => {
         const secs = sections().map(({ h, name }) => item(`📁  ${name}`, () => h.scrollIntoView({ behavior: still ? "auto" : "smooth", block: "start" })));
-        list.replaceChildren(...secs, ...(secs.length ? [el("hr")] : []), item("⚙  Settings", () => { location.hash = "#/mypreferencesmenu"; }), item("🖥  Screensaver", saver), item("⏻  Shut Down…", shutdown));
+        list.replaceChildren(...secs, ...(secs.length ? [el("hr")] : []), item("⚙  Settings", () => { location.hash = "#/mypreferencesmenu"; }), item("🖥  Screensaver", () => (window.hpScreensaver ? window.hpScreensaver("desktop95") : saver())), item("⏻  Shut Down…", shutdown));
         menu.hidden = false; start.setAttribute("aria-expanded", "true");
       };
       const close = () => { menu.hidden = true; start.setAttribute("aria-expanded", "false"); };
@@ -226,7 +226,8 @@
       }
       let saving = false, lastInput = Date.now();
       ["pointermove", "pointerdown", "keydown", "wheel", "scroll"].forEach((ev) => on(window, ev, () => { lastInput = Date.now(); }, { passive: true }));
-      every(5000, () => { if (!saving && !paused() && Date.now() - lastInput > 90000) saver(); });
+      // the built-in idle saver stands down once a Jellyfin screensaver is picked (screensavers.js), so two don't fight
+      every(5000, () => { if (!saving && !paused() && !window.hpScreensaverChosen?.() && Date.now() - lastInput > 90000) saver(); });
       function saver() {
         if (saving || still) return;
         saving = true;
@@ -334,7 +335,8 @@
       });
     },
 
-    // Slanted rain with a few neon-tinted drops; a pointed-at card's name "decrypts" from glyph noise; random glitch bursts.
+    // Slanted rain with a few neon-tinted drops; a pointed-at card's name, or side-drawer item (the Dashboard's menu and
+    // the main app's), "decrypts" from glyph noise; random glitch bursts.
     cyberpunk() {
       const { run } = canvas(1, 30);
       const drops = [];
@@ -351,9 +353,10 @@
       });
       const G = "アイウエオカキクケコサシスセソタチツテト01#$%&*<>/=+";
       on(document, "pointerover", (e) => {
-        const card = e.target.closest?.(".card");
+        const card = e.target.closest?.(".card, .MuiListItemButton-root");
         if (!card || card.contains(e.relatedTarget)) return;
-        const t = card.querySelector(".cardText-first") || card.querySelector(".cardText"), txt = t?.textContent?.trim();
+        const t = card.querySelector(".cardText-first") || card.querySelector(".cardText") || card.querySelector(".MuiListItemText-primary"),
+          txt = t?.textContent?.trim();
         if (!txt || t.dataset.scr) return;
         const frames = 10; let f = 0;
         const step = () => {

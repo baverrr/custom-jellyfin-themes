@@ -6,6 +6,9 @@
   `dashboard-base.css` recolours Jellyfin's MUI palette and gives the admin pages the theme's panels, fields,
   buttons, tables and side drawer. The server Custom CSS doesn't load on the Dashboard, so it builds only on each
   theme's own values.
+- Themed screensavers: `screensavers.js` adds ten animated screensavers, one per theme, plus "match my theme",
+  to Settings > Display > Screensaver. Each is built from random movies and shows in your library.
+- Cyberpunk's decrypt effect now also runs on side-drawer items, in the Dashboard and the main app.
 
 ## 1.0.0, 27 October 2026
 

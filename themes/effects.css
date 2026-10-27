@@ -71,6 +71,9 @@ html.hp-fx-hud .mainAnimatedPage { padding-bottom: 30px; }
 /* ---- Cyberpunk: decrypting names + glitch bursts ---- */
 html.hp-fx-cyberpunk .cardText[data-scr] { position: relative; }
 html.hp-fx-cyberpunk .cardText[data-scr]::after { content: attr(data-scr); position: absolute; inset: 0; white-space: nowrap; overflow: hidden; color: #00f0ff; background: #07070b; font: inherit; letter-spacing: inherit; }
+/* side-drawer items sit on the hover tint, so the real label goes clear under the glyphs instead of being covered */
+html.hp-fx-cyberpunk .MuiListItemText-primary[data-scr] { position: relative; color: transparent !important; }
+html.hp-fx-cyberpunk .MuiListItemText-primary[data-scr]::after { content: attr(data-scr); position: absolute; inset: 0; white-space: nowrap; overflow: hidden; color: #00f0ff; font: inherit; letter-spacing: inherit; }
 #cp-bars { position: fixed; inset: 0; z-index: 9991; pointer-events: none; opacity: 0;
   background: linear-gradient(transparent 18%, rgb(0 240 255 / .18) 18% 21%, transparent 21% 57%, rgb(255 0 60 / .2) 57% 58.5%, transparent 58.5% 76%, rgb(123 47 208 / .14) 76% 77%, transparent 77%); }
 html.cp-glitch #cp-bars { opacity: 1; animation: hp-bars .28s steps(3) 1; }
