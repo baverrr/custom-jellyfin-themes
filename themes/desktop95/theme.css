@@ -1,0 +1,162 @@
+/* DESKTOP 95 (from Homepage's desktop95.css) — a 1995 desktop: teal wallpaper, Tahoma lettering, the arrow cursor,
+   posters framed as bevelled grey windows, title-bar blue panels, and white desktop-icon titles with a hard shadow.
+   Jellyfin's interface is built for light-on-dark text, so panels and menus use the Windows title-bar navy rather
+   than the grey dialog face. (The working Start menu, taskbar and screensaver are Homepage JavaScript.) */
+@import url("../../dark/theme.css");
+@import url("../_base.css");
+@import url("../loader-base.css"); /* this theme draws its own loading animation */
+@import url("../player-base.css"); /* themed video player controls */
+@import url("../forms-base.css"); /* themed settings forms, search page and menus */
+@import url("../extras-base.css"); /* themed badges, progress bars, cast row, Live TV Guide and scrollbars */
+@import url("tiles/tiles.css"); /* My Media tiles, from ~/media-stack/jellyfin/library-covers/tiles */
+
+html:root:root {
+  --hp-accent: #c0c0c0; --hp-accent-2: #1084d0; --hp-accent-3: #ffff00; --hp-on-accent: #000; --hp-accent-deep: #000080;
+  --hp-bg: #008080;
+  --dcs-ink-0: #006a6a; --dcs-ink-1: #000060; --dcs-ink-2: #000080; --dcs-ink-3: #1084d0;
+  --dcs-glass: #000080; --dcs-glass-strong: #000080;
+  --dcs-hairline: #808080; --dcs-hairline-strong: #dfdfdf;
+  --dcs-text: #fff; --dcs-text-dim: #e8e8e8; --dcs-text-mute: #c0c0c0;
+  --dcs-r-xs: 0; --dcs-r-sm: 0; --dcs-r-md: 0; --dcs-r-lg: 0; --dcs-r-pill: 0;
+  --dcs-display: Tahoma, Verdana, "Segoe UI", system-ui, sans-serif;
+  --hp-card-border: 3px solid #c0c0c0;
+  --hp-card-shadow: inset -1px -1px #0a0a0a, inset 1px 1px #fff, inset -2px -2px #808080, inset 2px 2px #dfdfdf, 2px 2px 0 #000;
+  --hp-card-hover-border: #c0c0c0;
+  --hp-card-hover-shadow: 0 0 0 2px #000080, 2px 2px 0 #000;
+  --hp-title-color: #fff; --hp-title-glow: 1px 1px 0 #000;
+  --hp-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='19' shape-rendering='crispEdges'%3E%3Cpath d='M.5.5v15l4-4 3 6.5 2-1-3-6.5h5.5z' fill='%23fff' stroke='%23000'/%3E%3C/svg%3E") 0 0, default;
+}
+html:root body, html:root body :is(div, span, a, p, h1, h2, h3, h4, button, input, select, textarea, label, bdi):not(.material-icons):not(.material-symbols-rounded) {
+  font-family: Tahoma, Verdana, "Segoe UI", system-ui, sans-serif !important; -webkit-font-smoothing: none;
+}
+html:root, html:root body, html:root a, html:root button { cursor: var(--hp-arrow) !important; }
+html:root ::selection { background: #000080; color: #fff; }
+/* bevelled grey buttons */
+html:root :is(.emby-button.raised, .detailButton, .MuiButton-contained) {
+  background: #c0c0c0 !important; color: #000 !important; border-radius: 0 !important; border: 0 !important;
+  box-shadow: inset -1px -1px #0a0a0a, inset 1px 1px #fff, inset -2px -2px #808080, inset 2px 2px #dfdfdf !important;
+}
+html:root :is(.emby-button.raised, .detailButton, .MuiButton-contained):active {
+  box-shadow: inset -1px -1px #fff, inset 1px 1px #0a0a0a, inset -2px -2px #dfdfdf, inset 2px 2px #808080 !important;
+}
+html:root :is(.emby-button.raised, .detailButton) .material-icons { color: #000 !important; }
+/* the header pill as a title bar */
+html:root .MuiAppBar-root .MuiStack-root { background: linear-gradient(90deg, #000080, #1084d0) !important; border: 0 !important;
+  box-shadow: inset -1px -1px #0a0a0a, inset 1px 1px #dfdfdf, 2px 2px 0 #000 !important; }
+
+/* loading animation: a "Loading..." dialog — bevelled grey window, title-bar gradient, and a sunken progress bar filling
+   with navy blocks (slots: loader-base.css; MUI's spinner, with no layers, shows just the bar) */
+html:root :is(.mdl-spinner, .docspinner, .MuiCircularProgress-root) { width: 12em !important; height: 1.4em !important; }
+html:root .docspinner { margin: .2em 0 0 -6em !important; } /* centres the whole window, not just the bar */
+html:root :is(.mdl-spinner, .docspinner, .MuiCircularProgress-root)::before {
+  background: #c0c0c0; box-shadow: inset -1px -1px #fff, inset 1px 1px #808080, inset -2px -2px #dfdfdf, inset 2px 2px #0a0a0a;
+}
+html:root :is(.mdl-spinner, .docspinner, .MuiCircularProgress-root)::after {
+  inset: 4px; background: repeating-linear-gradient(90deg, #000080 0 .6em, transparent .6em .75em);
+  animation: w95-ld-fill 3s steps(15, end) infinite;
+}
+html:root :is(.mdl-spinner, .docspinner) > .mdl-spinner__layer:first-child::before {
+  z-index: -1; inset: -2.6em -.75em -.75em; background: linear-gradient(90deg, #000080, #1084d0) 3px 3px / calc(100% - 6px) 1.25em no-repeat, #c0c0c0;
+  box-shadow: inset -1px -1px #0a0a0a, inset 1px 1px #dfdfdf, inset -2px -2px #808080, inset 2px 2px #fff, 3px 3px 0 rgb(0 0 0 / .45);
+}
+html:root :is(.mdl-spinner, .docspinner) > .mdl-spinner__layer:first-child::after {
+  content: "Loading\2026"; inset: auto; left: calc(-.75em + 8px); top: calc(-2.6em + 4px); height: 1.25em; line-height: 1.25em; white-space: nowrap;
+  font: 700 12px/1.6 Tahoma, Verdana, sans-serif; color: #fff; -webkit-font-smoothing: none;
+}
+@keyframes w95-ld-fill { 0% { clip-path: inset(0 100% 0 0); } 90%, 100% { clip-path: inset(0 0 0 0); } }
+
+/* ---- video player: the controls as a "Media Player" window — title bar, bevelled grey buttons, a sunken
+   trackbar with navy progress chunks and a raised grey slider, yellow tooltips (shared shape: player-base.css) ---- */
+html:root:root {
+  --pl-shade: none; --pl-shade-top: linear-gradient(180deg, rgb(0 0 0 / .55), transparent);
+  --pl-ink: #000; --pl-icon: #000; --pl-time: #000; --pl-time-font: Tahoma, Verdana, sans-serif;
+  --pl-title-color: #fff; --pl-title-glow: none; --pl-title-font: Tahoma, Verdana, sans-serif;
+  --pl-h: 10px; --pl-track: #fff; --pl-buffer: #dfdfdf;
+  --pl-track-shadow: inset 1px 1px #808080, inset 2px 2px #0a0a0a, inset -1px -1px #fff, inset -2px -2px #dfdfdf;
+  --pl-fill: repeating-linear-gradient(90deg, #000080 0 8px, transparent 8px 10px) 2px 2px / calc(100% - 2px) calc(100% - 4px) no-repeat;
+  --pl-thumb-bg: #c0c0c0; --pl-thumb-r: 0; --pl-thumb-w: .7em; --pl-thumb-h: 1.45em;
+  --pl-thumb-shadow: inset -1px -1px #0a0a0a, inset 1px 1px #fff, inset -2px -2px #808080, inset 2px 2px #dfdfdf;
+  --pl-btn-r: 0; --pl-hover-bg: #c0c0c0; --pl-hover-ink: #000;
+  --pl-play-bg: #c0c0c0; --pl-play-r: 0;
+  --pl-bubble-bg: #ffffe1; --pl-bubble-ink: #000; --pl-bubble-border: 1px solid #000; --pl-bubble-r: 0; --pl-bubble-shadow: 2px 2px 0 rgb(0 0 0 / .4);
+  --pl-marker: #000080; --pl-marker-dim: #808080;
+  --w95-up: inset -1px -1px #0a0a0a, inset 1px 1px #fff, inset -2px -2px #808080, inset 2px 2px #dfdfdf;
+  --w95-down: inset -1px -1px #fff, inset 1px 1px #0a0a0a, inset -2px -2px #dfdfdf, inset 2px 2px #808080;
+}
+html:root .videoOsdBottom .osdControls {
+  margin: 0 1em; padding: 3px 6px 6px; background: #c0c0c0;
+  box-shadow: inset -1px -1px #0a0a0a, inset 1px 1px #dfdfdf, inset -2px -2px #808080, inset 2px 2px #fff, 2px 2px 0 #000;
+}
+html:root .videoOsdBottom .osdMainTextContainer { margin: 0 0 .5em; padding: 3px 3px 3px 6px; background: linear-gradient(90deg, #000080, #1084d0); align-items: center; }
+html:root .videoOsdBottom .osdTitle { font-size: 1em; font-weight: 700; }
+html:root .videoOsdBottom .osdTitle::before { content: "Media Player - "; }
+html:root .videoOsdBottom .osdTitle:empty::before { content: "Media Player"; } /* episodes leave the title here empty */
+html:root .videoOsdBottom .osdMainTextContainer::after {
+  content: "✕"; display: grid; place-items: center; width: 16px; height: 14px; margin-left: auto; flex: none;
+  background: #c0c0c0; color: #000; font: 700 10px/1 Tahoma, sans-serif; box-shadow: var(--w95-up);
+}
+html:root .videoOsdBottom .paper-icon-button-light { background: #c0c0c0 !important; box-shadow: var(--w95-up) !important; margin: 0 2px !important; }
+html:root .videoOsdBottom .paper-icon-button-light:active { box-shadow: var(--w95-down) !important; }
+html:root .videoOsdBottom .paper-icon-button-light:focus-visible { outline: 1px dotted #000; outline-offset: -5px; }
+html:root .osdHeader .headerButton { color: #fff !important; text-shadow: 1px 1px 0 #000; }
+/* Up Next: a grey dialog box with a navy title bar (the buttons get the bevel from the rule near the top) */
+html:root:root {
+  --pl-panel-bg: #c0c0c0; --pl-panel-border: 0; --pl-panel-r: 0; --pl-panel-pad: 3px 8px 10px;
+  --pl-panel-shadow: inset -1px -1px #0a0a0a, inset 1px 1px #dfdfdf, inset -2px -2px #808080, inset 2px 2px #fff, 2px 2px 0 #000;
+  --pl-time: #000080; --pl-btn-r2: 0; --pl-btn-hover-shadow: inset -1px -1px #0a0a0a, inset 1px 1px #fff, inset -2px -2px #808080, inset 2px 2px #dfdfdf;
+}
+html:root .upNextDialog { color: #000; }
+html:root .upNextDialog .upNextDialog-nextVideoText {
+  margin: 0 -5px .6em !important; padding: 3px 6px; background: linear-gradient(90deg, #000080, #1084d0); color: #fff; font-size: 1em;
+}
+html:root .upNextDialog :is(.upNextDialog-title, .upNextDialog-mediainfo) { color: #000; }
+html:root .upNextDialog .upNextDialog-countdownText { color: #ffff00; }
+html:root .upNextDialog .upNextDialog-button { background: #c0c0c0 !important; color: #000 !important; border: 0 !important; filter: none !important; box-shadow: var(--w95-up) !important; }
+html:root .upNextDialog .upNextDialog-button:active { box-shadow: var(--w95-down) !important; }
+html:root .upNextDialog .upNextDialog-button:focus-visible { outline: 1px dotted #000; outline-offset: -5px; }
+/* subtitles: classic closed captions, white Tahoma on a black box */
+html:root:root { --pl-sub-font: Tahoma, Verdana, sans-serif; --pl-sub-ink: #fff; --pl-sub-shadow: none; --pl-sub-bg: #000; --pl-sub-pad: .05em .35em; }
+
+/* ---- forms, search and menus: navy panels with a raised bevel, white sunken fields and check boxes, menus that
+   highlight in title-bar blue (shared shape: forms-base.css) ---- */
+html:root:root {
+  --fm-font: Tahoma, Verdana, sans-serif;
+  --fm-panel-bg: #000080; --fm-panel-border: 0; --fm-panel-r: 0;
+  --fm-panel-shadow: inset -1px -1px #0a0a0a, inset 1px 1px #dfdfdf, inset -2px -2px #808080, inset 2px 2px #fff, 3px 3px 0 #000;
+  --fm-field-bg: #fff; --fm-ink: #000; --fm-field-border: 0; --fm-r: 0; --fm-option-bg: #fff; --fm-option-ink: #000;
+  --fm-field-shadow: inset 1px 1px #808080, inset 2px 2px #0a0a0a, inset -1px -1px #fff, inset -2px -2px #dfdfdf;
+  --fm-focus: #000; --fm-focus-ring: 0 0 0 1px #ffff00;
+  --fm-label: #fff; --fm-desc: #c0c0c0; --fm-link: #fff;
+  --fm-check-border: 0; --fm-check-r: 0; --fm-check-off-bg: #fff; --fm-check-bg: #fff; --fm-check-ink: #000;
+  --fm-check-off-shadow: inset 1px 1px #808080, inset 2px 2px #0a0a0a, inset -1px -1px #fff, inset -2px -2px #dfdfdf;
+  --fm-check-glow: inset 1px 1px #808080, inset 2px 2px #0a0a0a, inset -1px -1px #fff, inset -2px -2px #dfdfdf;
+  --fm-menu-bg: #c0c0c0; --fm-menu-border: 0; --fm-menu-r: 0; --fm-ink-menu: #000;
+  --fm-menu-shadow: inset -1px -1px #0a0a0a, inset 1px 1px #dfdfdf, inset -2px -2px #808080, inset 2px 2px #fff, 2px 2px 0 #000;
+  --fm-menu-icon: #000; --fm-menu-hover: #000080; --fm-menu-hover-ink: #fff; --fm-menu-divider: #808080;
+}
+html:root :is(.MuiMenu-paper, .MuiDrawer-paper, .actionSheet), html:root :is(.MuiMenu-paper, .MuiDrawer-paper) :is(.MuiListItemText-primary, .MuiTypography-root) { color: #000 !important; text-shadow: none !important; }
+html:root :is(.MuiMenu-paper, .MuiDrawer-paper) :is(.MuiMenuItem-root, .MuiListItemButton-root):is(:hover, .Mui-focusVisible) :is(.MuiListItemText-primary, .MuiTypography-root) { color: #fff !important; }
+html:root .selectArrowContainer { color: #000; }
+
+/* ---- extras: raised grey badges, a sunken progress bar of navy chunks, cast photos in a grey frame, the Guide as a
+   white list box with a navy selection, and the classic chequered scrollbar (shared shape: extras-base.css) ---- */
+html:root:root {
+  --ex-badge-font: Tahoma, Verdana, sans-serif; --ex-badge-bg: #c0c0c0; --ex-badge-ink: #000; --ex-badge-r: 0; --ex-badge-shadow: var(--w95-up), 2px 2px 0 rgb(0 0 0 / .5);
+  --ex-tick-bg: #c0c0c0; --ex-tick-ink: #000;
+  --ex-prog-h: 9px; --ex-prog-r: 0; --ex-prog-glow: none; --ex-prog-track: #fff;
+  --ex-prog-track-shadow: inset 1px 1px #808080, inset -1px -1px #dfdfdf;
+  --ex-prog-fill: repeating-linear-gradient(90deg, #000080 0 6px, transparent 6px 8px) 2px 2px / calc(100% - 4px) 5px no-repeat;
+  --ex-cast-ring: 0 solid transparent; --ex-cast-shadow: 0 0 0 3px #c0c0c0, 0 0 0 4px #000, 3px 3px 0 4px rgb(0 0 0 / .45);
+  --ex-cast-hover: transparent; --ex-cast-hover-shadow: 0 0 0 3px #000080, 0 0 0 4px #000, 3px 3px 0 4px rgb(0 0 0 / .45);
+  --ex-cast-font: Tahoma, Verdana, sans-serif; --ex-cast-name: #fff; --ex-cast-role: #e8e8e8;
+  --ex-guide-font: Tahoma, Verdana, sans-serif; --ex-guide-bg: #fff; --ex-guide-border: 0; --ex-guide-r: 0;
+  --ex-guide-shadow: inset 1px 1px #808080, inset 2px 2px #0a0a0a, inset -1px -1px #fff, inset -2px -2px #dfdfdf;
+  --ex-guide-ink: #000; --ex-guide-dim: #000; --ex-guide-num: #000080; --ex-guide-line-color: #c0c0c0; --ex-guide-line: 1px solid #fff;
+  --ex-guide-time: #fff; --ex-guide-today: #ffff00;
+  --ex-now-bg: #e8e8f8; --ex-now-ink: #000; --ex-now-shadow: inset 2px 0 #000080; --ex-cell-hover: #000080; --ex-cell-hover-ink: #fff;
+  --ex-tag-bg: #ffff00; --ex-tag-ink: #000; --ex-tag-r: 0; --ex-tag-border: 1px solid #000; --ex-tag-new-bg: #c0c0c0;
+  --ex-sb-w: 16px; --ex-sb-r: 0; --ex-sb-border: 0; --ex-sb-clip: border-box; --ex-sb-thumb: #c0c0c0; --ex-sb-thumb-hover: #c0c0c0; --ex-sb-shadow: var(--w95-up);
+  --ex-sb-thumb-flat: #c0c0c0; --ex-sb-track-flat: #dfdfdf;
+  --ex-sb-track: repeating-conic-gradient(#c0c0c0 0 25%, #fff 0 50%) 0 0 / 2px 2px;
+}
+html:root .tvguide .programCell:is(:hover, :focus-visible) .guideProgramNameCaretIcon, html:root .tvguide .guide-channelHeaderCell:is(:hover, :focus-visible) .guideChannelNumber { color: #fff !important; }

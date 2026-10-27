@@ -1,0 +1,119 @@
+/* Video player controls for the Homepage themes, imported by every theme.css after loader-base.css.
+   This file is the shared shape; each theme sets the --pl-* values below on html:root:root and adds its own
+   touches in its "video player" block. Unset values fall back to the theme's --dcs-* / --hp-* colours.
+   Markup (jellyfin-web 12.2): .skinHeader.osdHeader at the top (back button, page title), and .videoOsdBottom >
+   .osdControls with .osdTitle, a row of .osdPositionText / .sliderContainer (input.osdPositionSlider.mdl-slider +
+   .mdl-slider-background-flex: -lower = played, -upper = buffered) / .osdDurationText, then .buttons with
+   .paper-icon-button-light buttons (.btnPause is play/pause) and the volume .mdl-slider. */
+
+/* while the player is open the theme's page decorations (scanlines, title block, temperature scale...) stay off the picture */
+html:root:has(#videoOsdPage:not(.hide))::before, html:root:has(#videoOsdPage:not(.hide))::after,
+html:root:has(#videoOsdPage:not(.hide)) body::before { display: none !important; }
+
+/* panels: the shade behind the bottom controls and the top bar */
+html:root .videoOsdBottom {
+  background: var(--pl-shade, linear-gradient(0deg, var(--dcs-ink-0) 0%, color-mix(in srgb, var(--dcs-ink-0) 70%, transparent) 45%, transparent)) !important;
+  color: var(--pl-ink, var(--dcs-text));
+}
+html:root .skinHeader-withBackground.osdHeader {
+  background: var(--pl-shade-top, linear-gradient(180deg, color-mix(in srgb, var(--dcs-ink-0) 85%, transparent), transparent)) !important;
+  color: var(--pl-ink, var(--dcs-text));
+}
+html:root .osdHeader .pageTitle { color: var(--pl-ink, var(--dcs-text)); font-family: var(--pl-font, inherit); }
+
+/* text */
+html:root .videoOsdBottom .osdTitle {
+  font-family: var(--pl-title-font, var(--dcs-display)); color: var(--pl-title-color, var(--hp-title-color, var(--dcs-text)));
+  text-transform: var(--hp-title-case, none); letter-spacing: var(--hp-title-track, normal); font-style: var(--hp-title-style, normal);
+  text-shadow: var(--pl-title-glow, var(--hp-title-glow, none));
+}
+html:root .videoOsdBottom :is(.osdPositionText, .osdDurationText, .osdTimeText) {
+  color: var(--pl-time, var(--dcs-text-dim)); font-family: var(--pl-time-font, inherit); font-variant-numeric: tabular-nums;
+  text-shadow: var(--pl-time-glow, none);
+}
+
+/* the seek and volume bars */
+html:root .videoOsdBottom .mdl-slider-background-flex {
+  height: var(--pl-h, .25em); margin-top: calc(var(--pl-h, .25em) / -2);
+  background: var(--pl-track, rgb(255 255 255 / .22)); border-radius: var(--pl-r, 0); box-shadow: var(--pl-track-shadow, none);
+}
+html:root .videoOsdBottom .mdl-slider-background-upper { background: var(--pl-buffer, rgb(255 255 255 / .2)); }
+html:root .videoOsdBottom .mdl-slider-background-lower {
+  background: var(--pl-fill, var(--dcs-accent)); box-shadow: var(--pl-fill-glow, none); border-radius: var(--pl-fill-r, 0);
+}
+html:root .videoOsdBottom .mdl-slider { color: var(--pl-thumb-bg, var(--dcs-accent)); }
+html:root .videoOsdBottom .mdl-slider::-webkit-slider-thumb {
+  width: var(--pl-thumb-w, 1.08em); height: var(--pl-thumb-h, 1.08em); background: var(--pl-thumb-bg, var(--dcs-accent));
+  border: var(--pl-thumb-border, 0); border-radius: var(--pl-thumb-r, 50%); box-shadow: var(--pl-thumb-shadow, none);
+}
+html:root .videoOsdBottom .mdl-slider::-moz-range-thumb {
+  width: var(--pl-thumb-w, 1.08em); height: var(--pl-thumb-h, 1.08em); background: var(--pl-thumb-bg, var(--dcs-accent));
+  border: var(--pl-thumb-border, 0); border-radius: var(--pl-thumb-r, 50%); box-shadow: var(--pl-thumb-shadow, none);
+}
+html:root .videoOsdBottom .sliderMarker.watched { background: var(--pl-marker, var(--dcs-text)); }
+html:root .videoOsdBottom .sliderMarker.unwatched { background: var(--pl-marker-dim, rgb(255 255 255 / .35)); }
+/* the time bubble shown while dragging */
+html:root .sliderBubble {
+  background: var(--pl-bubble-bg, var(--dcs-glass-strong)); color: var(--pl-bubble-ink, var(--dcs-text));
+  border: var(--pl-bubble-border, 1px solid var(--dcs-hairline-strong)); border-radius: var(--pl-bubble-r, var(--dcs-r-sm, 4px));
+  box-shadow: var(--pl-bubble-shadow, none); font-family: var(--pl-time-font, inherit);
+}
+
+/* buttons */
+html:root :is(.videoOsdBottom .paper-icon-button-light, .osdHeader .headerButton) {
+  color: var(--pl-icon, var(--pl-ink, var(--dcs-text))) !important; text-shadow: var(--pl-icon-glow, none);
+  border-radius: var(--pl-btn-r, 50%); transition: background-color .15s, color .15s, box-shadow .15s, transform .15s;
+}
+html:root :is(.videoOsdBottom .paper-icon-button-light, .osdHeader .headerButton):is(:hover, :focus-visible) {
+  background: var(--pl-hover-bg, var(--dcs-a22)) !important; color: var(--pl-hover-ink, var(--pl-icon, var(--dcs-text))) !important;
+  box-shadow: var(--pl-hover-shadow, none);
+}
+html:root .videoOsdBottom .btnPause {
+  background: var(--pl-play-bg, transparent) !important; color: var(--pl-play-ink, var(--pl-icon, var(--dcs-text))) !important;
+  border: var(--pl-play-border, 0); border-radius: var(--pl-play-r, var(--pl-btn-r, 50%)); box-shadow: var(--pl-play-shadow, none);
+  margin: 0 .3em !important;
+}
+html:root .videoOsdBottom .btnPause:is(:hover, :focus-visible) {
+  background: var(--pl-play-hover-bg, var(--pl-play-bg, var(--dcs-a22))) !important; color: var(--pl-play-hover-ink, var(--pl-play-ink, var(--pl-icon, var(--dcs-text)))) !important;
+  box-shadow: var(--pl-play-hover-shadow, var(--pl-play-shadow, none));
+}
+
+/* the "Up Next" card near the end of an episode (.upNextDialog: h2 "Next Episode Playing in <countdown>", h3 title,
+   media info, then Start Now / Hide buttons). Themes set --pl-panel-* for the card and --pl-next-* / --pl-skip-* for the two buttons. */
+html:root .upNextDialog {
+  background: var(--pl-panel-bg, var(--dcs-glass-strong)) !important; color: var(--pl-ink, var(--dcs-text));
+  border: var(--pl-panel-border, 1px solid var(--dcs-hairline-strong)); border-radius: var(--pl-panel-r, var(--dcs-r-lg, 8px));
+  box-shadow: var(--pl-panel-shadow, 0 18px 40px -16px rgb(0 0 0 / .9)); padding: var(--pl-panel-pad, 1em 1.2em);
+}
+html:root .upNextDialog .upNextDialog-nextVideoText {
+  font-family: var(--pl-title-font, var(--dcs-display)); font-size: 1.15em; font-weight: 700;
+  color: var(--pl-title-color, var(--hp-title-color, var(--dcs-text))); text-transform: var(--hp-title-case, none);
+  letter-spacing: var(--hp-title-track, normal); font-style: var(--hp-title-style, normal); text-shadow: var(--pl-title-glow, var(--hp-title-glow, none));
+}
+html:root .upNextDialog .upNextDialog-countdownText { color: var(--pl-time, var(--dcs-accent)); text-shadow: var(--pl-time-glow, none); font-variant-numeric: tabular-nums; }
+html:root .upNextDialog .upNextDialog-title { color: var(--pl-ink, var(--dcs-text)); font-weight: 500; }
+html:root .upNextDialog .upNextDialog-mediainfo { color: var(--dcs-text-mute); }
+html:root .upNextDialog .upNextDialog-button {
+  margin-left: .6em; border-radius: var(--pl-btn-r2, var(--dcs-r-sm, 4px)) !important; font-weight: 700; text-transform: var(--pl-btn-case, none);
+  transition: background-color .15s, color .15s, box-shadow .15s, filter .15s;
+}
+html:root .upNextDialog .btnStartNow {
+  background: var(--pl-next-bg, var(--dcs-accent)) !important; color: var(--pl-next-ink, var(--hp-on-accent, #000)) !important;
+  border: var(--pl-next-border, 0) !important; box-shadow: var(--pl-next-shadow, none) !important;
+}
+html:root .upNextDialog .btnHide {
+  background: var(--pl-skip-bg, transparent) !important; color: var(--pl-skip-ink, var(--dcs-text)) !important;
+  border: var(--pl-skip-border, 1px solid var(--dcs-hairline-strong)) !important; box-shadow: none !important;
+}
+html:root .upNextDialog .upNextDialog-button:is(:hover, :focus-visible) { filter: brightness(1.15); box-shadow: var(--pl-btn-hover-shadow, 0 0 0 2px var(--dcs-a55)) !important; }
+
+/* subtitles: text subtitles are drawn either as the player's own element (.videoSubtitlesInner, with the Settings >
+   Subtitles appearance as inline styles) or as native captions (.htmlvideoplayer::cue, styled from a <style> with
+   !important). Themes set --pl-sub-*: only the typeface, colour, outline and box are themed; size and position stay as
+   set in Settings > Subtitles. Image subtitles (PGS, VobSub) and ASS/SSA are pictures and keep their own look. */
+html:root .videoSubtitles .videoSubtitlesInner, html:root video.htmlvideoplayer::cue {
+  font-family: var(--pl-sub-font, "Noto Sans", sans-serif) !important; color: var(--pl-sub-ink, #fff) !important;
+  text-shadow: var(--pl-sub-shadow, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000, 0 2px 6px #000) !important;
+  background: var(--pl-sub-bg, transparent) !important; font-style: var(--pl-sub-style, normal) !important;
+}
+html:root .videoSubtitles .videoSubtitlesInner { padding: var(--pl-sub-pad, 0 .2em); border-radius: var(--pl-sub-r, 0); }

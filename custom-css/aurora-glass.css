@@ -1,0 +1,1342 @@
+/* aurora-glass:start */
+/* Aurora Glass 1.6.2 for Jellyfin 12 - https://github.com/scotthowson/jellyfin-aurora-glass-releases */
+/* Pinned ElegantFin imports (order matters: the jf12 companion must come last).
+   Sources: lscambo13/ElegantFin v26.09.05 (commit 5efc110), mihaif7/elegantfin-jf12 v26.09.21 (commit afdd0e8).
+   Tags, not @main, so upstream changes never reach the server unannounced. To update: change the tag, run ./apply.sh, restart Jellyfin. */
+@import url("https://cdn.jsdelivr.net/gh/lscambo13/ElegantFin@v26.09.05/Theme/ElegantFin-jellyfin-theme-build-latest-minified.css"); /* self-hosted copy of https://cdn.jsdelivr.net/gh/lscambo13/ElegantFin@v26.09.05/Theme/ElegantFin-jellyfin-theme-build-latest-minified.css (jellyfin/theme-assets/build.py) */
+@import url("https://cdn.jsdelivr.net/gh/lscambo13/ElegantFin@v26.09.05/Theme/assets/add-ons/media-bar-plugin-support-latest-min.css"); /* self-hosted copy of https://cdn.jsdelivr.net/gh/lscambo13/ElegantFin@v26.09.05/Theme/assets/add-ons/media-bar-plugin-support-latest-min.css (jellyfin/theme-assets/build.py) */
+@import url("https://cdn.jsdelivr.net/gh/mihaif7/elegantfin-jf12@v26.09.21/Theme/ElegantFin-jf12-modern-v26.09.21.css"); /* self-hosted copy of https://cdn.jsdelivr.net/gh/mihaif7/elegantfin-jf12@v26.09.21/Theme/ElegantFin-jf12-modern-v26.09.21.css (jellyfin/theme-assets/build.py) */
+/* Intro Skipper "Skip Intro" button skin (the file the plugin's own "Inject Skip Button CSS" action adds to the branding CSS).
+   Kept here, pinned to a commit, so apply.sh (which rewrites branding.xml) never drops it. It reads ElegantFin's variables
+   (--headerColor, --textColor, --accentColor, --largerRadius...), which custom.css re-points, and exposes its own --skip-btn-*
+   variables, which custom.css sets. Source: intro-skipper/intro-skipper-css @ 48ab5bf. */
+@import url("https://cdn.jsdelivr.net/gh/intro-skipper/intro-skipper-css@48ab5bf34431746a1a623ff5a27fb2ed3fa798b5/skip-button.min.css"); /* self-hosted copy of https://cdn.jsdelivr.net/gh/intro-skipper/intro-skipper-css@48ab5bf34431746a1a623ff5a27fb2ed3fa798b5/skip-button.min.css (jellyfin/theme-assets/build.py) */
+
+/* ==========================================================================
+   AURORA GLASS - the owner's bespoke Jellyfin design system
+   Loaded AFTER imports.css (pinned ElegantFin + Media Bar support + Jellyfin 12 companion).
+   ElegantFin stays underneath as the structural layer (layout, MUI/legacy bridging);
+   everything you SEE is re-based here on one token set, so the whole UI can be re-tinted
+   from a single place - or live, by custom.js, from the artwork on screen.
+
+   HOW TO TWEAK (all in section 1)
+     --dcs-h            accent hue, degrees on the OKLCH wheel. 162 = emerald (default), 200 = cyan,
+                        260 = blue, 300 = violet, 350 = rose, 30 = orange, 90 = gold
+     --dcs-c / --dcs-l  accent chroma / lightness (vividness / brightness)
+     --dcs-glow         0 = flat, 1 = default, 1.6 = neon: aurora, hero halo, focus glow, progress glow
+     --dcs-scrim        0..1 dims the page-backdrop image the Media Bar paints behind every page when its "sync page backdrop" is on
+     --dcs-fx-*         feature switches read by custom.js (1 = on, 0 = off): greeting, tilt, sync,
+                        autohide, parallax, transition, nav (sliding indicator), carousel, volume, hero, dots, ambient, reveal, advance,
+                        focus, titles, rails, cast, onair, thread, gate (pure CSS: custom.js only mirrors a 0 into html.dcs-off-<name>)
+     --dcs-trailer-volume  hero trailer volume in % when the gear-panel slider was never moved (default 15)
+     --dcs-trailer-max     seconds a hero slide with a trailer stays before it moves on by itself (default 30, counted from when the slide appears; 0 = wait for the trailer's end)
+     Classes on <html> that switch things off without editing CSS: dcs-no-aurora, dcs-no-motion, dcs-no-tilt, dcs-no-ambient
+   The file is sectioned; delete a whole numbered section and the rest still works.
+   ========================================================================== */
+
+@import url("https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Instrument+Serif:ital@0;1&display=swap"); /* self-hosted copy of https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Instrument+Serif:ital@0;1&display=swap (jellyfin/theme-assets/build.py) */
+
+/* 0. REGISTERED PROPERTIES ----------------------------------------------------
+   Registering a custom property lets the browser INTERPOLATE it: a change of --dcs-h (by custom.js)
+   eases over 1.4 s in CSS, and --dcs-angle spins the hero's conic border. No JS animation loop. */
+@property --dcs-h     { syntax: "<number>"; inherits: true; initial-value: 162; }
+@property --dcs-c     { syntax: "<number>"; inherits: true; initial-value: 0.17; }
+@property --dcs-angle { syntax: "<angle>";  inherits: true; initial-value: 0deg; }
+/* the stops of the trailer's edge dissolve (see SEAM / REVEAL): registered so that they can animate */
+@property --dcs-vm-l0 { syntax: "<percentage>"; inherits: true; initial-value: 2%; }
+@property --dcs-vm-l1 { syntax: "<percentage>"; inherits: true; initial-value: 26%; }
+@property --dcs-vm-r  { syntax: "<percentage>"; inherits: true; initial-value: 88%; }
+@property --dcs-vm-t  { syntax: "<percentage>"; inherits: true; initial-value: 12%; }
+@property --dcs-vm-b  { syntax: "<percentage>"; inherits: true; initial-value: 84%; }
+
+/* 1. TOKENS --------------------------------------------------------------------
+   Colour system in OKLCH: the three accent hues stay a fixed distance apart, so retinting the
+   accent (--dcs-h) retints the whole aurora coherently. */
+:root {
+    --dcs-h: 162;                      /* accent hue: emerald */
+    --dcs-c: 0.17;                     /* accent chroma */
+    --dcs-l: 0.80;                     /* accent lightness */
+    --dcs-glow: 1;                     /* glow strength multiplier, 0..1.6 */
+    --dcs-scrim: .74;                  /* how strongly a page-backdrop image painted by a plugin is dimmed (0 = untouched, 1 = hidden) */
+    transition: --dcs-h 1.6s cubic-bezier(.22, 1, .36, 1), --dcs-c 1.6s cubic-bezier(.22, 1, .36, 1);
+
+    --dcs-accent:      oklch(var(--dcs-l) var(--dcs-c) var(--dcs-h));
+    --dcs-accent-2:    oklch(.77 .14 calc(var(--dcs-h) + 40));     /* teal/cyan companion */
+    --dcs-accent-3:    oklch(.70 .19 calc(var(--dcs-h) + 140));    /* violet counterpoint */
+    --dcs-accent-deep: oklch(.50 .13 var(--dcs-h));                /* solid fills that carry white text */
+    --dcs-accent-ink:  oklch(.19 .05 var(--dcs-h));                /* text ON the bright accent */
+    --dcs-a08: oklch(var(--dcs-l) var(--dcs-c) var(--dcs-h) / .08);
+    --dcs-a14: oklch(var(--dcs-l) var(--dcs-c) var(--dcs-h) / .14);
+    --dcs-a22: oklch(var(--dcs-l) var(--dcs-c) var(--dcs-h) / .22);
+    --dcs-a35: oklch(var(--dcs-l) var(--dcs-c) var(--dcs-h) / .35);
+    --dcs-a55: oklch(var(--dcs-l) var(--dcs-c) var(--dcs-h) / .55);
+
+    /* ink: deep blue-black surfaces, lightest last */
+    --dcs-ink-0: oklch(.135 .013 255);   /* page */
+    --dcs-ink-1: oklch(.175 .015 255);   /* raised */
+    --dcs-ink-2: oklch(.215 .017 255);   /* cards, controls */
+    --dcs-ink-3: oklch(.265 .018 255);   /* hover, menus */
+    --dcs-glass:        oklch(.16 .014 255 / .52);   /* translucent surface (needs backdrop-filter) */
+    --dcs-glass-strong: oklch(.14 .013 255 / .82);
+    --dcs-hairline:        oklch(1 0 0 / .09);
+    --dcs-hairline-strong: oklch(1 0 0 / .17);
+    --dcs-text:      oklch(.95 .005 255);
+    --dcs-text-dim:  oklch(.75 .012 255);
+    --dcs-text-mute: oklch(.60 .014 255);
+    --dcs-alert:     oklch(.63 .21 25);    /* notification badges (a fixed red: the accent follows the artwork, an alert must not) */
+
+    /* shape + motion */
+    --dcs-npbar-h: 80px;               /* room kept above Jellyfin's now-playing bar (it is ~64 px) by things that float at the bottom */
+    --dcs-r-xs: 8px;  --dcs-r-sm: 12px;  --dcs-r-md: 16px;  --dcs-r-lg: 24px;  --dcs-r-pill: 999px;
+    --dcs-ease:    cubic-bezier(.22, 1, .36, 1);       /* decelerating: arrivals */
+    --dcs-ease-io: cubic-bezier(.65, 0, .35, 1);       /* symmetric: drifts */
+    --dcs-blur: 22px;
+    --dcs-display: "Bricolage Grotesque", "Inter", ui-sans-serif, system-ui, sans-serif;
+    --dcs-serif:   "Instrument Serif", "Iowan Old Style", "Palatino Linotype", Georgia, serif;
+
+    /* custom.js feature switches (1 on / 0 off). Read on every route change. */
+    --dcs-fx-greeting: 1;
+    --dcs-fx-tilt: 1;
+    --dcs-fx-sync: 1;
+    --dcs-fx-autohide: 1;
+    --dcs-fx-parallax: 1;
+    --dcs-fx-transition: 1;
+    --dcs-fx-nav: 1;
+    --dcs-fx-carousel: 1;
+    --dcs-fx-ambient: 1;               /* hero ambience: baked, blurred copy of the slide artwork behind the card (custom.js) */
+    --dcs-fx-reveal: 1;                /* hover the hero trailer and it melts across the cover art (custom.js) */
+    --dcs-fx-advance: 1;               /* Media Bar auto-advance: the slide timer the plugin never starts (custom.js) */
+    --dcs-fx-focus: 1;                 /* keyboard focus you can SEE on posters and card titles (CSS; custom.js mirrors the switch into html.dcs-off-focus) */
+    --dcs-fx-titles: 1;                /* the accent tick and the same indent on EVERY home row title, also the ones without a "see all" link (CSS; mirrored into html.dcs-off-titles) */
+    --dcs-fx-cast: 1;                  /* Cast & Crew: the age chips and the birthplace of Jellyfin Enhanced / ActorPlus move to where the round photo has room (CSS; mirrored into html.dcs-off-cast) */
+    --dcs-fx-onair: 1;                 /* while something plays in the now-playing bar, the avatar's ring turns aurora and breathes (CSS, section 15; mirrored into html.dcs-off-onair) */
+    --dcs-fx-thread: 1;                /* a 2 px aurora thread along the top of the window fills as the page scrolls (CSS scroll timeline, section 15; mirrored into html.dcs-off-thread) */
+    --dcs-fx-backdrop: 1;              /* details pages always show the item's backdrop, also with Jellyfin's Settings > Display > Backdrops off or Media Bar's page-backdrop sync on (custom.js); 0 = Jellyfin decides */
+    --dcs-fx-gate: 1;                  /* arriving on a details page, the backdrop opens like a projector gate (CSS, section 15, rides --dcs-fx-transition; mirrored into html.dcs-off-gate) */
+    --dcs-fx-rails: 1;                 /* one card width per row: a row with a partly watched backdrop card widens all its backdrop cards, not just that one (CSS; mirrored into html.dcs-off-rails) */
+    --dcs-fx-trayclick: 1;             /* a click on one of Jellyfin Enhanced's header buttons (Requests, Calendar, random) no longer also opens the Achievements page of Achievement Badges, whose badge strip holds them (custom.js) */
+    --dcs-fx-badgelink: 1;             /* each equipped badge in the header (First Contact, Genre Curious ...) opens its own card on the Achievements page instead of the page as a whole; keyboard and tooltip too (custom.js) */
+    --dcs-fx-brand: 1;                 /* the favicon, the touch icon and the round logo beside the server name load from a URL with ?dcs=<brand version>, so a phone or browser that still holds Jellyfin's old file in its cache shows the new one at once (custom.js) */
+    --dcs-fx-pickers: 1;               /* a click, a focus or an arrow-down on an empty "Search Other Countries" / "Providers" box (Jellyfin Enhanced's Search Settings) opens the plugin's list of choices, which otherwise needs a typed letter first (custom.js) */
+    --dcs-fx-hoversound: 1;            /* the trailer's sound fades up while the pointer rests on it (reveal) and back down when it leaves; never overrides a sound you switched on (custom.js) */
+    --dcs-fx-away: 1;                  /* the hero's trailer pauses (and its sound with it) while the page is scrolled away from the slider, and resumes when it is back (custom.js) */
+    --dcs-trailer-max: 30;             /* seconds a slide with a trailer stays (counted from when it appears; 3.5 s start delay + picture); 0 = wait for the trailer's own end. Slides without a trailer use the plugin's 12 s */
+    --dcs-amb-op: .7;                  /* how strong that glow is (0..1) */
+    --dcs-fx-volume: 1;                /* Media Bar trailer volume governor (custom.js) */
+    --dcs-fx-hero: 1;                  /* Media Bar hero watchdog: rebuilds an empty hero by itself, placeholder while it loads (custom.js) */
+    --dcs-fx-dots: 1;                  /* Media Bar position indicator that follows next / previous (custom.js) */
+    --dcs-trailer-volume: 15;          /* trailer volume in %, used when the Media Bar's gear-panel slider has never been touched */
+    /* which home rows become the recommendation carousel: a regex matched against the row's title and class (case-insensitive) */
+    --dcs-carousel-match: "recommend|because|for you|suggest|top picks|trending|popular|you might|more like|watch again";
+}
+
+/* Browsers without OKLCH (old smart-TV engines): a hex twin of the tokens, same look. */
+@supports not (color: oklch(0.5 0.1 100)) {
+    :root {
+        --dcs-accent: #21df9b; --dcs-accent-2: #00ceda; --dcs-accent-3: #b57cff; --dcs-accent-deep: #007f51; --dcs-accent-ink: #00251a;
+        --dcs-a08: rgba(33,223,155,.08); --dcs-a14: rgba(33,223,155,.14); --dcs-a22: rgba(33,223,155,.22); --dcs-a35: rgba(33,223,155,.35); --dcs-a55: rgba(33,223,155,.55);
+        --dcs-ink-0: #070b10; --dcs-ink-1: #0d1319; --dcs-ink-2: #141b23; --dcs-ink-3: #1d2530;
+        --dcs-glass: rgba(12,17,23,.62); --dcs-glass-strong: rgba(10,14,19,.86);
+        --dcs-hairline: rgba(255,255,255,.09); --dcs-hairline-strong: rgba(255,255,255,.17);
+        --dcs-text: #eef1f5; --dcs-text-dim: #a3abb6; --dcs-text-mute: #7a8492; --dcs-alert: #e5383b;
+    }
+}
+
+/* ElegantFin's variables, re-pointed at the tokens. Every ElegantFin surface (menus, forms, buttons,
+   drawer, cards, the MUI palette bridge in the jf12 sheet) now speaks Aurora Glass without a selector. */
+:root, :root[data-theme] {
+    --darkerGradientPoint: var(--dcs-ink-0);
+    --darkerGradientPointAlpha: oklch(.135 .013 255 / .86);
+    --lighterGradientPoint: var(--dcs-ink-1);
+    --lighterGradientPointAlpha: oklch(.175 .015 255 / .86);
+    --gradientPointAlpha: oklch(.175 .015 255 / .3);
+    --headerColor: var(--dcs-glass);
+    --drawerColor: var(--dcs-glass-strong);
+    --borderColor: var(--dcs-hairline-strong);
+    --darkerBorderColor: var(--dcs-hairline);
+    --lighterBorderColor: oklch(1 0 0 / .24);
+    --selectorBackgroundColor: var(--dcs-ink-3);
+    --selectorBackgroundColorAlpha: oklch(.265 .018 255 / .55);
+    --textColor: var(--dcs-text);
+    --dimTextColor: var(--dcs-text-dim);
+    --tableBodyColor: var(--dcs-ink-1);
+    --dividerColor: oklch(1 0 0 / .07);
+    --semiTransparentAccentColor: var(--dcs-a14);
+    --activeBackgroundColor: var(--dcs-a14);
+    --hoverBackgroundColor: oklch(1 0 0 / .10);
+    --hoverTabBackgroundColor: oklch(1 0 0 / .12);
+    --hoverTextColor: var(--dcs-text);
+    --activeTextColor: var(--dcs-text);
+
+    --accentColor: var(--dcs-accent-deep);
+    --accentHoverColor: var(--dcs-accent);
+    --btnSubmitColor: var(--dcs-accent-deep);
+    --btnSubmitBorderColor: var(--dcs-accent);
+    --checkboxCheckedBgColor: var(--dcs-accent-deep);
+    --btnMiniPlayColor: var(--dcs-accent-deep);
+    --btnMiniPlayBorderColor: var(--dcs-accent);
+    --btnPlayColor: var(--dcs-accent);
+    --btnPlayBorderColor: transparent;
+    --highlightOutlineColor: var(--dcs-accent);
+    --cardHoverBorderColor: var(--dcs-a55);
+    --cardResumeProgressColor: var(--dcs-accent);
+    --osdSeekBarPlayedColor: var(--dcs-accent);
+    --osdSeekBarThumbColor: var(--dcs-text);
+    --multiSelectOverlayColor: oklch(.10 .012 255 / .82);
+
+    --backgroundGradient: var(--dcs-ink-0);                 /* the aurora (section 2) replaces the vertical gradient */
+    --cardBackgroundGradient: linear-gradient(180deg, var(--dcs-ink-2), var(--dcs-ink-1));
+    --headerColorGradient: linear-gradient(180deg, oklch(.10 .012 255 / .92) 0%, oklch(.10 .012 255 / .55) 55%, transparent 100%);
+    --headerColorGradientAlt: var(--headerColorGradient);
+    --cardShadow: 0 10px 26px -16px oklch(0 0 0 / .9);
+
+    /* MUI palette channels (space separated R G B); custom.js keeps them in step with --dcs-h */
+    --jf-palette-primary-mainChannel: 33 223 155;
+    --jf-palette-secondary-mainChannel: 33 223 155;
+    --jf-palette-background-defaultChannel: 8 12 18;
+    --jf-palette-background-paperChannel: 26 32 42;
+
+    /* Intro Skipper skip button (imports.css): its own variables, nothing else. The button only exists on the video page. */
+    --skip-btn-bg: oklch(.14 .013 255 / .84);
+    --skip-btn-border-color: var(--dcs-hairline-strong);
+    --skip-btn-text-color: var(--dcs-text);
+    --skip-btn-bg-hover: var(--dcs-accent);
+    --skip-btn-text-color-hover: var(--dcs-accent-ink);
+    --skip-btn-progress-color: var(--dcs-a35);
+    --skip-btn-shadow: 0 12px 34px -12px oklch(0 0 0 / .85);
+
+    /* ElegantFin display options */
+    --extraCardButtonsVisibility: block;
+    --overlayPlayButtonPosition: 50%;
+    --libraryLabelVisibility: block;
+    --resumeCardScale: 1.2;
+    --ef12-appBarHeightDesktop: 72px;      /* app bar heights on the 4 px grid (see the two rules below) */
+    --ef12-navRadius: 999px;
+    --ef12-surfaceRadius: 16px;
+    --ef12-navPillBackground: transparent;
+    --largeRadius: 14px;
+    --largerRadius: 22px;
+}
+/* app bar 72 px desktop / 64 px elsewhere: ElegantFin's 4.5rem / 4rem (66.96 / 59.5 px) put every header control on a fractional y and blurred its edges */
+:root:not(.layout-desktop) { --ef12-appBarHeight: 64px; }
+:root.layout-desktop { --ef12-appBarHeight: 72px; }
+/* one horizontal rhythm for header, hero, greeting, section titles and posters: ElegantFin uses 3.3 % (47.52 px at 1440 -> half-pixel edges that
+   almost line up); round() puts it on the 4 px grid (48 px at 1440). Browsers without round() keep ElegantFin's own value. */
+@supports (width: round(1px, 1px)) {
+    :root { --sidePadding: round(3.3vw, 4px); }
+}
+:root { --dcs-card-pad: .375em; }                   /* mirrors ElegantFin's own .card padding (.375em; 1px on layout-mobile) */
+:root.layout-mobile { --dcs-card-pad: 1px; }
+:root[data-theme=light] {
+    /* Aurora Glass is a dark design; the light scheme only keeps a sane accent (ElegantFin's light palette stays) */
+    --dcs-l: .55; --dcs-c: .15;
+    --dcs-accent-ink: oklch(.98 .01 var(--dcs-h));
+    --dcs-text: oklch(.22 .01 255); --dcs-text-dim: oklch(.42 .012 255);
+    --dcs-hairline: oklch(0 0 0 / .10); --dcs-hairline-strong: oklch(0 0 0 / .18);
+    --dcs-glass: oklch(.98 .005 255 / .72); --dcs-glass-strong: oklch(.98 .005 255 / .9);
+}
+
+/* brand:lockup:begin (generated by brand/build.py --inject) */
+:root { --dcs-lockup: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='150 8 1000 346'%3E%3Cdefs%3E%3ClinearGradient id='btop' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%236ee7b7'/%3E%3Cstop offset='.55' stop-color='%2310b981'/%3E%3Cstop offset='1' stop-color='%230891b2'/%3E%3C/linearGradient%3E%3ClinearGradient id='bmid' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%232dd4bf' stop-opacity='0.55'/%3E%3Cstop offset='1' stop-color='%230e7490' stop-opacity='0.45'/%3E%3C/linearGradient%3E%3ClinearGradient id='blow' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%2394a3b8' stop-opacity='0.32'/%3E%3Cstop offset='1' stop-color='%23475569' stop-opacity='0.28'/%3E%3C/linearGradient%3E%3ClinearGradient id='bplay' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23ffffff'/%3E%3Cstop offset='1' stop-color='%23d1fae5'/%3E%3C/linearGradient%3E%3ClinearGradient id='btent' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%2367e8f9' stop-opacity='.85'/%3E%3Cstop offset='1' stop-color='%2322d3ee' stop-opacity='.05'/%3E%3C/linearGradient%3E%3CradialGradient id='baura' cx='.5' cy='.5' r='.5'%3E%3Cstop offset='0' stop-color='%2334d399' stop-opacity='.26'/%3E%3Cstop offset='.55' stop-color='%2322d3ee' stop-opacity='.07'/%3E%3Cstop offset='1' stop-color='%2322d3ee' stop-opacity='0'/%3E%3C/radialGradient%3E%3Cfilter id='bsoft' x='-40%25' y='-40%25' width='180%25' height='180%25'%3E%3CfeGaussianBlur stdDeviation='16'/%3E%3C/filter%3E%3Cfilter id='bdot' x='-300%25' y='-300%25' width='700%25' height='700%25'%3E%3CfeGaussianBlur stdDeviation='9'/%3E%3C/filter%3E%3Cfilter id='blift' x='-40%25' y='-40%25' width='180%25' height='190%25'%3E%3CfeGaussianBlur in='SourceAlpha' stdDeviation='11'/%3E%3CfeOffset dy='14' result='b'/%3E%3CfeFlood flood-color='%23022c22' flood-opacity='.55'/%3E%3CfeComposite in2='b' operator='in'/%3E%3CfeMerge%3E%3CfeMergeNode/%3E%3CfeMergeNode in='SourceGraphic'/%3E%3C/feMerge%3E%3C/filter%3E%3C/defs%3E%3Cg transform='translate(34.8 -112.4) scale(0.535)'%3E%3Ccircle cx='512' cy='540' r='290' fill='url(%23baura)'/%3E%3Cpath d='M512 699 C 512 753.9, 498 789.9, 512 842.1' fill='none' stroke='url(%23btent)' stroke-width='7' stroke-linecap='round' opacity='1.0'/%3E%3Ccircle cx='512' cy='842.1' r='16' fill='%2367e8f9' filter='url(%23bdot)' opacity='0.8'/%3E%3Ccircle cx='512' cy='842.1' r='11' fill='%23a5f3fc' opacity='1.0'/%3E%3Cpath d='M458 672 C 446 737.7, 424 777.3, 440 831.3' fill='none' stroke='url(%23btent)' stroke-width='7' stroke-linecap='round' opacity='0.8'/%3E%3Ccircle cx='440' cy='831.3' r='14' fill='%2367e8f9' filter='url(%23bdot)' opacity='0.6400000000000001'/%3E%3Ccircle cx='440' cy='831.3' r='9' fill='%23a5f3fc' opacity='0.8'/%3E%3Cpath d='M566 672 C 578 737.7, 600 777.3, 584 831.3' fill='none' stroke='url(%23btent)' stroke-width='7' stroke-linecap='round' opacity='0.8'/%3E%3Ccircle cx='584' cy='831.3' r='14' fill='%2367e8f9' filter='url(%23bdot)' opacity='0.6400000000000001'/%3E%3Ccircle cx='584' cy='831.3' r='9' fill='%23a5f3fc' opacity='0.8'/%3E%3Cpath d='M404 645 C 382 719.7, 344 746.7, 356 795.3' fill='none' stroke='url(%23btent)' stroke-width='7' stroke-linecap='round' opacity='0.55'/%3E%3Ccircle cx='356' cy='795.3' r='12' fill='%2367e8f9' filter='url(%23bdot)' opacity='0.44000000000000006'/%3E%3Ccircle cx='356' cy='795.3' r='7' fill='%23a5f3fc' opacity='0.55'/%3E%3Cpath d='M620 645 C 642 719.7, 680 746.7, 668 795.3' fill='none' stroke='url(%23btent)' stroke-width='7' stroke-linecap='round' opacity='0.55'/%3E%3Ccircle cx='668' cy='795.3' r='12' fill='%2367e8f9' filter='url(%23bdot)' opacity='0.44000000000000006'/%3E%3Ccircle cx='668' cy='795.3' r='7' fill='%23a5f3fc' opacity='0.55'/%3E%3Cpath d='M250 568 L512 437 L774 568 L512 699 Z' fill='url(%23blow)' stroke='%23cbd5e1' stroke-opacity='0.35' stroke-width='6' stroke-linejoin='round'/%3E%3Cpath d='M250 484 L512 353 L774 484 L512 615 Z' fill='url(%23bmid)' stroke='%2367e8f9' stroke-opacity='0.55' stroke-width='6' stroke-linejoin='round'/%3E%3Cpath d='M250 400 L512 269 L774 400 L512 531 Z' fill='url(%23btop)' stroke='%23d1fae5' stroke-opacity='0.9' stroke-width='7' stroke-linejoin='round'/%3E%3Cpath d='M250 400 L512 269 L774 400' fill='none' stroke='%23ffffff' stroke-opacity='0.45' stroke-width='7' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M464.0 334.0 L464.0 474.0 L598.0 404.0 Z' fill='url(%23bplay)' stroke='url(%23bplay)' stroke-width='22.0' stroke-linejoin='round' filter='url(%23blift)'/%3E%3Ccircle cx='512' cy='269' r='16' fill='%23a7f3d0' filter='url(%23bdot)' fill-opacity='.9'/%3E%3Ccircle cx='250' cy='400' r='12' fill='%2367e8f9' filter='url(%23bdot)'/%3E%3Ccircle cx='774' cy='400' r='12' fill='%2367e8f9' filter='url(%23bdot)'/%3E%3Ccircle cx='512' cy='269' r='11' fill='%23a7f3d0'/%3E%3Ccircle cx='250' cy='400' r='9' fill='%23a5f3fc'/%3E%3Ccircle cx='774' cy='400' r='9' fill='%23a5f3fc'/%3E%3C/g%3E%3Cpath transform='translate(548.1 282)' d='M-20.65 49.88Q-27.14 49.88 -31.2 46.4Q-35.26 42.92 -35.26 37.35Q-35.26 32.71 -32.48 29Q-29.7 25.29 -24.82 25.29Q-20.65 25.29 -19.02 27.61Q-17.4 29.93 -16.82 32.94Q-16.24 35.96 -15.2 38.28Q-14.15 40.6 -11.14 40.6Q-6.73 40.6 -3.13 35.5Q0.46 30.39 2.55 21.11L42.46 -151.73Q43.62 -156.6 42.46 -158.22Q41.3 -159.85 36.66 -160.78L32.02 -161.7Q29 -162.4 29 -164.26Q29 -167.04 33.18 -167.04H74.47Q77.72 -167.04 77.72 -164.72Q77.72 -162.17 73.08 -161.47L68.44 -160.78Q63.34 -160.08 61.48 -158.34Q59.62 -156.6 58.46 -151.73L25.75 -10.21Q19.26 17.63 6.84 33.76Q-5.57 49.88 -20.65 49.88Z M84.45 2.09Q72.15 2.09 64.73 -7.54Q57.3 -17.17 57.3 -34.8Q57.3 -50.11 62.76 -65.19Q68.21 -80.27 77.02 -92.57Q85.84 -104.86 96.4 -112.29Q106.95 -119.71 116.93 -119.71Q127.83 -119.71 132.59 -114.49Q137.34 -109.27 137.34 -100.46Q137.34 -90.02 130.04 -79.69Q122.73 -69.37 109.62 -61.25Q96.51 -53.13 78.88 -49.18Q73.78 -48.02 73.54 -43.38Q73.31 -41.76 73.31 -40.02Q73.31 -38.28 73.31 -36.66Q73.31 -23.43 77.84 -16.7Q82.36 -9.98 90.25 -9.98Q99.06 -9.98 107.3 -18.1Q115.54 -26.22 121.1 -41.06Q121.8 -43.15 123.89 -43.15Q125.28 -43.15 125.63 -41.99Q125.98 -40.83 125.51 -39.21Q118.09 -18.79 107.53 -8.35Q96.98 2.09 84.45 2.09ZM75.86 -58Q75.4 -56.38 76.44 -55.33Q77.49 -54.29 79.11 -54.75Q93.5 -58.7 103.24 -66.7Q112.98 -74.7 117.97 -84.68Q122.96 -94.66 122.96 -104.17Q122.96 -113.91 115.3 -113.91Q108.58 -113.91 100.69 -106.02Q92.8 -98.14 86.07 -85.38Q79.34 -72.62 75.86 -58Z M152.42 2.32Q144.77 2.32 141.52 -3.36Q138.27 -9.05 141.29 -22.04L170.75 -148.48Q171.91 -152.66 170.87 -154.28Q169.82 -155.9 166.58 -156.14L159.62 -156.83Q156.14 -157.06 156.6 -159.85Q157.06 -161.94 159.85 -162.4Q168.2 -163.79 174.7 -165.76Q181.19 -167.74 185.14 -170.98Q186.99 -172.38 188.62 -172.38Q191.4 -172.38 190.7 -168.9L156.37 -21.81Q155.21 -16.7 156.02 -13.8Q156.83 -10.9 160.31 -10.9Q164.49 -10.9 169.48 -17.05Q174.46 -23.2 180.73 -40.37Q181.66 -43.38 183.98 -43.38Q187.46 -43.38 185.83 -39.21Q180.96 -23.43 175.04 -14.27Q169.13 -5.1 163.33 -1.39Q157.53 2.32 152.42 2.32Z M208.1 2.32Q200.45 2.32 197.2 -3.36Q193.95 -9.05 196.97 -22.04L226.43 -148.48Q227.59 -152.66 226.55 -154.28Q225.5 -155.9 222.26 -156.14L215.3 -156.83Q211.82 -157.06 212.28 -159.85Q212.74 -161.94 215.53 -162.4Q223.88 -163.79 230.38 -165.76Q236.87 -167.74 240.82 -170.98Q242.67 -172.38 244.3 -172.38Q247.08 -172.38 246.38 -168.9L212.05 -21.81Q210.89 -16.7 211.7 -13.8Q212.51 -10.9 215.99 -10.9Q220.17 -10.9 225.16 -17.05Q230.14 -23.2 236.41 -40.37Q237.34 -43.38 239.66 -43.38Q243.14 -43.38 241.51 -39.21Q236.64 -23.43 230.72 -14.27Q224.81 -5.1 219.01 -1.39Q213.21 2.32 208.1 2.32Z M240.35 49.88Q231.54 49.88 226.66 45.36Q221.79 40.83 221.79 34.34Q221.79 29.46 224.34 27.03Q226.9 24.59 229.91 24.59Q234.32 24.59 236.18 26.91Q238.03 29.23 238.96 32.36Q239.89 35.5 241.86 37.82Q243.83 40.14 248.24 40.14Q256.82 40.14 265.18 33.29Q273.53 26.45 278.86 14.5Q284.2 2.55 283.5 -12.3L280.02 -95.58Q279.79 -101.62 277.94 -104.05Q276.08 -106.49 273.3 -106.49Q268.19 -106.49 263.55 -100.34Q258.91 -94.19 255.9 -77.02Q255.2 -74.01 252.88 -74.01Q249.63 -74.01 250.33 -78.18Q253.11 -94.19 258.1 -103.24Q263.09 -112.29 268.77 -116Q274.46 -119.71 279.33 -119.71Q286.52 -119.71 290.7 -114.72Q294.87 -109.74 295.34 -97.67L298.58 -8.58Q298.58 -6.96 299.63 -6.61Q300.67 -6.26 301.6 -7.66Q309.72 -19.02 316.33 -31.2Q322.94 -43.38 326.89 -55.22Q330.83 -67.05 330.83 -77.02Q330.83 -86.77 328.74 -92.45Q326.66 -98.14 324.45 -102.08Q322.25 -106.02 322.25 -110.66Q322.25 -119.71 330.14 -119.71Q341.27 -119.71 341.27 -95.12Q341.27 -81.66 336.63 -65.77Q331.99 -49.88 323.99 -33.52Q315.98 -17.17 305.66 -2.32Q295.34 12.53 284.08 24.36Q272.83 36.19 261.58 43.04Q250.33 49.88 240.35 49.88Z M351.02 0Q348 0 348.7 -3.02L372.13 -103.24Q374.22 -111.82 366.56 -111.82H361.69Q357.98 -111.82 357.98 -115.07Q357.98 -118.32 362.15 -118.32Q369.34 -118.32 372.94 -120.18Q376.54 -122.03 377.7 -127.6Q380.71 -140.82 386.63 -151.15Q392.54 -161.47 400.9 -167.5Q409.25 -173.54 419.22 -173.54Q427.34 -173.54 432.33 -169.71Q437.32 -165.88 437.32 -159.15Q437.32 -154.05 434.65 -150.92Q431.98 -147.78 428.04 -147.78Q423.17 -147.78 421.66 -150.57Q420.15 -153.35 419.8 -157.06Q419.46 -160.78 418.3 -163.56Q417.14 -166.34 412.96 -166.34Q407.62 -166.34 403.56 -161.12Q399.5 -155.9 396.26 -141.52L391.62 -121.34Q390.92 -118.32 394.17 -118.32H412.73Q417.14 -118.32 416.21 -115.07Q415.51 -111.82 412.03 -111.82H391.85Q389.53 -111.82 388.83 -109.5L364.01 -2.55Q363.31 0 360.76 0Z M450.08 -140.36Q445.67 -140.36 442.77 -143.49Q439.87 -146.62 439.87 -151.03Q439.87 -157.3 443.7 -161.01Q447.53 -164.72 452.4 -164.72Q457.04 -164.72 460.17 -161.82Q463.3 -158.92 463.3 -154.28Q463.3 -147.78 459.36 -144.07Q455.42 -140.36 450.08 -140.36ZM431.06 2.32Q423.4 2.32 420.15 -3.36Q416.9 -9.05 419.92 -22.04L437.09 -95.58Q438.25 -100.69 437.44 -103.59Q436.62 -106.49 433.14 -106.49Q428.97 -106.49 423.98 -100.34Q418.99 -94.19 412.73 -77.02Q411.8 -74.01 409.48 -74.01Q406 -74.01 407.62 -78.18Q412.73 -94.19 418.41 -103.24Q424.1 -112.29 429.9 -116Q435.7 -119.71 440.57 -119.71Q448.69 -119.71 451.94 -114.03Q455.18 -108.34 452.17 -95.35L435 -21.81Q433.84 -16.7 434.65 -13.8Q435.46 -10.9 438.94 -10.9Q443.12 -10.9 448.11 -17.05Q453.1 -23.2 459.36 -40.37Q460.29 -43.38 462.61 -43.38Q466.09 -43.38 464.46 -39.21Q459.59 -23.43 453.68 -14.27Q447.76 -5.1 441.96 -1.39Q436.16 2.32 431.06 2.32Z M481.86 -3.02 503.9 -95.58Q505.06 -100.69 504.25 -103.59Q503.44 -106.49 499.96 -106.49Q495.78 -106.49 490.8 -100.34Q485.81 -94.19 479.54 -77.02Q478.62 -74.01 476.3 -74.01Q472.82 -74.01 474.44 -78.18Q479.54 -94.19 485.23 -103.24Q490.91 -112.29 496.71 -116Q502.51 -119.71 507.38 -119.71Q515.04 -119.71 518.29 -114.03Q521.54 -108.34 518.52 -95.35L512.72 -70.3Q512.49 -68.67 513.42 -68.44Q514.34 -68.21 515.04 -69.6Q524.09 -88.39 532.44 -99.41Q540.79 -110.43 548.22 -115.07Q555.64 -119.71 561.67 -119.71Q570.26 -119.71 574.2 -112.75Q578.14 -105.79 574.2 -91.41L556.57 -24.13Q554.94 -17.63 556.34 -14.38Q557.73 -11.14 561.44 -11.14Q566.08 -11.14 570.6 -17.28Q575.13 -23.43 580 -40.6Q580.7 -43.15 583.02 -43.15Q584.87 -43.15 585.22 -41.76Q585.57 -40.37 585.1 -38.51Q580.7 -22.74 575.59 -13.8Q570.49 -4.87 565.27 -1.39Q560.05 2.09 554.71 2.09Q546.36 2.09 542.18 -4.87Q538.01 -11.83 541.72 -26.45L559.58 -93.73Q562.14 -102.78 560.4 -106.26Q558.66 -109.74 555.41 -109.74Q550.3 -109.74 543.81 -103.36Q537.31 -96.98 530.58 -85.96Q523.86 -74.94 517.36 -61.02Q510.86 -47.1 505.64 -32.02Q500.42 -16.94 497.18 -2.55Q496.48 0 493.93 0H484.42Q481.17 0 481.86 -3.02Z' fill='%23f4fbf8'/%3E%3C/svg%3E"); }
+/* brand:lockup:end */
+
+/* native checkboxes and radios in plugin pages: Achievement Badges' settings (user menu > Settings) paints its three with its own #00a4dc, important */
+input[type="checkbox"], input[type="radio"] { accent-color: var(--dcs-accent); }
+input.ab-native-nav-checkbox { accent-color: var(--dcs-accent) !important; }
+
+/* 2. AMBIENT BACKDROP ---------------------------------------------------------
+   Jellyfin keeps a fixed .backgroundContainer behind every page. Two pseudo-elements on it carry the
+   aurora: big soft radial blobs that drift on compositor-only transforms (no repaint, no layout).
+   A 3.5% film grain (one small SVG tile) breaks up gradient banding on the near-black. */
+html { background: var(--dcs-ink-0); }
+.backgroundContainer { background-color: var(--dcs-ink-0); }
+/* never paint the backdrop layer itself: Jellyfin 12.2 can keep an EMPTY second .backdropContainer (its legacy helper adds one at <body>'s start when React's is not
+   mounted yet); painted, it sat over the real one in some page orders and the details backdrop vanished. The html background is the dark base already. */
+.backdropContainer { background: none; }
+.backgroundContainer { overflow: hidden; isolation: isolate; }
+.backgroundContainer::before, .backgroundContainer::after {
+    content: ""; position: absolute; inset: -30%; pointer-events: none; z-index: -1;
+    will-change: transform; contain: strict;
+}
+.backgroundContainer::before {
+    background:
+        radial-gradient(34% 40% at 20% 24%, oklch(.60 .15 var(--dcs-h) / calc(.34 * var(--dcs-glow))), transparent 72%),
+        radial-gradient(30% 36% at 84% 14%, oklch(.56 .17 calc(var(--dcs-h) + 140) / calc(.26 * var(--dcs-glow))), transparent 72%),
+        linear-gradient(oklch(.12 .013 255 / var(--dcs-scrim)), oklch(.12 .013 255 / var(--dcs-scrim)));   /* scrim: dims an image another plugin may paint on this container (Media Bar "sync page backdrop") */
+    animation: dcs-drift-a 58s var(--dcs-ease-io) infinite alternate;
+}
+.backgroundContainer::after {
+    background:
+        radial-gradient(36% 42% at 76% 86%, oklch(.58 .13 calc(var(--dcs-h) + 40) / calc(.26 * var(--dcs-glow))), transparent 72%),
+        radial-gradient(26% 32% at 10% 92%, oklch(.54 .15 calc(var(--dcs-h) + 90) / calc(.18 * var(--dcs-glow))), transparent 72%);
+    animation: dcs-drift-b 74s var(--dcs-ease-io) infinite alternate;
+}
+@keyframes dcs-drift-a { from { transform: translate3d(-3%, -2%, 0) rotate(-3deg) scale(1); }  to { transform: translate3d(4%, 5%, 0) rotate(5deg) scale(1.12); } }
+@keyframes dcs-drift-b { from { transform: translate3d(3%, 3%, 0) rotate(4deg) scale(1.1); }   to { transform: translate3d(-5%, -4%, 0) rotate(-4deg) scale(1); } }
+/* the grain sits in the container's own background stack: below all content, above nothing else */
+.backgroundContainer { background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 .035 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>"); }
+html.dcs-no-aurora .backgroundContainer::before, html.dcs-no-aurora .backgroundContainer::after { display: none; }
+/* detail pages paint the item's own backdrop: the aurora is only a whisper there */
+body:has(.selfBackdropPage:not(.hide)) .backgroundContainer::before,
+body:has(.selfBackdropPage:not(.hide)) .backgroundContainer::after { opacity: .35; }
+/* the video player and screensavers get no ambience at all */
+html.dcs-video .backgroundContainer::before, html.dcs-video .backgroundContainer::after,
+body:has(#videoOsdPage:not(.hide)) .backgroundContainer::before, body:has(#videoOsdPage:not(.hide)) .backgroundContainer::after, body:has(.videoPlayerContainer) .backgroundContainer::before, body:has(.videoPlayerContainer) .backgroundContainer::after,
+.backgroundContainer.backgroundContainer-transparent::before, .backgroundContainer.backgroundContainer-transparent::after { display: none; }
+
+/* 3. BASE: TYPE, SELECTION, SCROLLBARS, FOCUS ------------------------------------ */
+html { -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; scrollbar-width: thin; scrollbar-color: var(--dcs-a35) transparent; }
+::selection { background: var(--dcs-a35); color: var(--dcs-text); }
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: oklch(1 0 0 / .14); border-radius: 999px; border: 2px solid transparent; background-clip: padding-box; }
+::-webkit-scrollbar-thumb:hover { background: var(--dcs-a55); background-clip: padding-box; }
+/* focus: one luminous ring for keyboard/remote users; mouse clicks stay clean */
+:focus-visible { outline: 2px solid var(--dcs-accent) !important; outline-offset: 3px; }
+.card:focus-visible { outline: 0 !important; }
+.card:focus-visible .cardScalable { border-color: var(--dcs-accent) !important; box-shadow: 0 0 0 3px var(--dcs-a35), 0 0 34px -6px var(--dcs-a55); }
+/* --dcs-fx-focus. Jellyfin puts keyboard focus on the poster's IMAGE LINK, never on .card, so the card rule above never fired, and the generic ring (2 px, 3 px away) was drawn outside a
+   link that sits inside .cardScalable (overflow: hidden): a focused poster showed nothing but its hover buttons. The card now carries the ring while anything inside it has keyboard focus
+   (:has needs Chrome 105 / Firefox 121 / Safari 15.4; older engines keep the old, clipped ring). Card titles sit in .cardText (overflow: hidden), which cut the bottom of their ring:
+   they get the accent colour and an underline instead. Mouse clicks still show nothing (:focus-visible). */
+@supports selector(:has(*)) {
+    html:not(.dcs-off-focus) .cardScalable:has(:focus-visible) { border-color: var(--dcs-accent) !important; box-shadow: 0 0 0 3px var(--dcs-a35), 0 0 34px -6px var(--dcs-a55); }
+    html:not(.dcs-off-focus) .cardScalable .cardImageContainer:focus-visible { outline: 0 !important; }
+}
+html:not(.dcs-off-focus) .cardText a:focus-visible { outline: 0 !important; color: var(--dcs-accent); text-decoration: underline 2px var(--dcs-accent); text-underline-offset: 2px; }
+.emby-input:focus, .emby-textarea:focus, .emby-select:focus { border-color: var(--dcs-accent) !important; box-shadow: 0 0 0 4px var(--dcs-a14) !important; outline: 0 !important; }
+h1, h2, h3, .sectionTitle, .itemName, .pageTitle { font-family: var(--dcs-display); }
+
+/* 4. HEADER: FLOATING GLASS PILL + ORBS -----------------------------------------
+   Everything sits on a 4 px grid: 40 px controls, a 48 px pill (3 px padding + 1 px border around 40 px links), 8 px gaps, a 72 px bar.
+   Jellyfin 12 renders the bar with MUI: brand + library links become one glass capsule (icon + label - the labels go and the icons stay
+   when the bar is crowded: custom.js sets html.dcs-nav-compact), every button on the right is its own 40 px
+   glass orb, whatever plugin put it there. custom.js draws the sliding indicator (html.dcs-nav-ready); without JS the active
+   link keeps a filled chip.
+   "The bar's toolbar" is written .MuiAppBar-root > .MuiToolbar-root:not(.MuiToolbar-root ~ *) = the first TOOLBAR of the app bar, not :first-child: Jellyfin takes the
+   toolbar out of the app bar while the video page is open and React puts a new one in BEHIND whatever a plugin added to the bar in the meantime (KefinTweaks'
+   breadcrumbs), so after playing something the toolbar was the second child, none of these rules matched any more and the plugins' own "hide the header
+   buttons" rules won (icons only, right-hand buttons gone, until a refresh). Same specificity as before. */
+.MuiAppBar-root.MuiAppBar-colorTransparent, .MuiAppBar-root.MuiAppBar-colorDefault { border: 0; box-shadow: none; }
+.MuiAppBar-root > .MuiToolbar-root:not(.MuiToolbar-root ~ *) { gap: 8px; align-items: center; padding-inline: var(--sidePadding) !important; }
+.MuiAppBar-root > .MuiToolbar-root:not(.MuiToolbar-root ~ *) > .MuiStack-root {
+    position: relative; flex: 0 1 auto !important; width: fit-content; min-width: 0; max-width: 100%; align-items: center; gap: 0;
+    overflow-x: auto; scrollbar-width: none; padding: 3px; border-radius: var(--dcs-r-pill);
+    background: var(--dcs-glass); border: 1px solid var(--dcs-hairline);
+    -webkit-backdrop-filter: blur(var(--dcs-blur)) saturate(1.6); backdrop-filter: blur(var(--dcs-blur)) saturate(1.6);
+    box-shadow: inset 0 1px 0 oklch(1 0 0 / .07), 0 14px 40px -18px oklch(0 0 0 / .85);
+}
+.MuiAppBar-root > .MuiToolbar-root:not(.MuiToolbar-root ~ *) > .MuiStack-root::-webkit-scrollbar { display: none; }
+.MuiAppBar-root .MuiStack-root > .MuiButton-text:not(.MuiButtonGroup-grouped) {
+    position: relative; z-index: 1; flex: 0 0 auto; box-sizing: border-box; height: 40px; min-height: 0; min-width: 0; margin: 0; padding: 0 12px;
+    border-radius: var(--dcs-r-pill); background: transparent; color: var(--dcs-text-dim); white-space: nowrap; line-height: 1;
+    font: 500 15px/1 var(--dcs-display); letter-spacing: 0;
+    transition: color .25s var(--dcs-ease), background-color .25s var(--dcs-ease);
+}
+/* wide: the icon AND the label; crowded (html.dcs-nav-compact, below): the icon alone. Kefin's Watchlist draws its icon as a font glyph and StarTrack's "★ My Ratings" has none of the MUI parts: both follow the same rule. */
+.MuiAppBar-root .MuiStack-root > .MuiButton-text:not(:has(.MuiButton-startIcon > img)) .MuiButton-startIcon { display: inline-flex; align-items: center; margin: 0 8px 0 -2px; opacity: .85; }
+.MuiAppBar-root .MuiStack-root > .MuiButton-text:not(:has(.MuiButton-startIcon > img)) .MuiButton-startIcon :is(.MuiSvgIcon-root, .material-icons) { width: 20px; height: 20px; font-size: 20px; line-height: 1; }
+.layout-desktop .MuiAppBar-root .MuiStack-root > .MuiButton-text:not(.MuiButtonGroup-grouped, .MuiButton-textPrimary, :has(.MuiButton-startIcon > img)):hover { background: oklch(1 0 0 / .08); color: var(--dcs-text); }
+.MuiAppBar-root .MuiStack-root > .MuiButton-text:not(.MuiButtonGroup-grouped):focus-visible { outline: 2px solid var(--dcs-accent) !important; outline-offset: -2px; }
+.MuiAppBar-root .MuiStack-root > .MuiButton-text:not(.MuiButtonGroup-grouped):active { transform: scale(.96); transition-duration: .08s; }
+/* active link: filled accent chip (JS on: transparent, the indicator carries it) */
+.MuiAppBar-root .MuiStack-root > .MuiButton-textPrimary:not(.MuiButtonGroup-grouped) {
+    background: linear-gradient(135deg, var(--dcs-accent), var(--dcs-accent-2)) !important; color: var(--dcs-accent-ink) !important; font-weight: 650;
+    box-shadow: 0 6px 22px -6px var(--dcs-a55);
+}
+/* brand: logo + name, no chip */
+.MuiAppBar-root .MuiStack-root > .MuiButton-text:not(.MuiButtonGroup-grouped):has(.MuiButton-startIcon > img) {
+    color: var(--dcs-text); font: 700 18px/1 var(--dcs-display); letter-spacing: -.02em; padding: 0 16px 0 8px; margin-right: 4px;
+}
+.MuiAppBar-root .MuiStack-root > .MuiButton-text:has(.MuiButton-startIcon > img) .MuiButton-startIcon { display: inline-flex; margin: 0 12px 0 0; }
+.MuiAppBar-root .MuiStack-root > .MuiButton-text:has(.MuiButton-startIcon > img) .MuiButton-startIcon > img { width: 28px !important; height: 28px !important; max-width: 28px !important; max-height: 28px !important; }
+.MuiAppBar-root .MuiStack-root > .MuiButton-text:has(.MuiButton-startIcon > img)::after { display: none; }
+.MuiAppBar-root .MuiStack-root > .MuiButton-text:has(.MuiButton-startIcon > img):hover { background: transparent !important; }
+/* sliding indicator (custom.js sets --dcs-ind-x / --dcs-ind-w / --dcs-ind-o on <html>) */
+html.dcs-nav-ready .MuiAppBar-root > .MuiToolbar-root:not(.MuiToolbar-root ~ *) > .MuiStack-root::before {
+    content: ""; position: absolute; left: 0; top: 3px; bottom: 3px; z-index: 0; width: var(--dcs-ind-w, 0px);
+    transform: translateX(var(--dcs-ind-x, 0px)); opacity: var(--dcs-ind-o, 0); border-radius: var(--dcs-r-pill);
+    background: linear-gradient(135deg, var(--dcs-accent), var(--dcs-accent-2));
+    box-shadow: 0 0 22px -4px var(--dcs-a55), inset 0 1px 0 oklch(1 0 0 / .35);
+    transition: transform .55s var(--dcs-ease), width .55s var(--dcs-ease), opacity .3s;
+}
+html.dcs-nav-ready .MuiAppBar-root .MuiStack-root > .MuiButton-textPrimary:not(.MuiButtonGroup-grouped) { background: transparent !important; box-shadow: none; }
+/* crowded bar (plugins add links): custom.js measures the room and sets html.dcs-nav-compact; the links with an icon become 40 px icon
+   buttons (the label stays in the DOM and is copied to the tooltip). Text-only plugin links keep their text. */
+html.dcs-nav-compact .MuiAppBar-root .MuiStack-root > .MuiButton-text:not(:has(.MuiButton-startIcon > img)):has(.MuiButton-startIcon :is(svg, .material-icons)) { width: 40px; padding: 0; font-size: 0; justify-content: center; }
+html.dcs-nav-compact .MuiAppBar-root .MuiStack-root > .MuiButton-text:not(:has(.MuiButton-startIcon > img)) .MuiButton-startIcon { display: inline-flex; margin: 0; opacity: 1; }
+html.dcs-nav-compact .MuiAppBar-root .MuiStack-root > .MuiButton-text:not(:has(.MuiButton-startIcon > img)) .MuiButton-startIcon :is(.MuiSvgIcon-root, .material-icons) { width: 24px; height: 24px; font-size: 24px; }
+/* Jellyfin's own "More" (libraries that do not fit) has a caret, no start icon: the caret stays */
+html.dcs-nav-compact .MuiAppBar-root .MuiStack-root > .MuiButton-text:not(:has(.MuiButton-startIcon)):has(.MuiButton-endIcon) { width: 40px; padding: 0; font-size: 0; justify-content: center; }
+html.dcs-nav-compact .MuiAppBar-root .MuiStack-root > .MuiButton-text:not(:has(.MuiButton-startIcon)) .MuiButton-endIcon { margin: 0; }
+html.dcs-nav-compact .MuiAppBar-root .MuiStack-root > .MuiButton-text:not(:has(.MuiButton-startIcon)) .MuiButton-endIcon .MuiSvgIcon-root { width: 24px; height: 24px; font-size: 24px; }
+/* StarTrack's "\2605 My Ratings" is plain text with no icon part: the star stays, the words go */
+html.dcs-nav-compact .MuiAppBar-root .MuiStack-root > #ir-hdr-link { width: 40px; padding: 0 !important; font-size: 0 !important; justify-content: center; }       /* (StarTrack sets its own padding and font size with !important) */
+html.dcs-nav-compact .MuiAppBar-root .MuiStack-root > #ir-hdr-link::before { content: "\2605"; font-size: 22px; line-height: 1; }
+@media (max-width: 1100px) and (min-width: 601px) {   /* no-JS fallback for narrow desktops */
+    .MuiAppBar-root .MuiStack-root > .MuiButton-text:not(:has(.MuiButton-startIcon > img)):has(.MuiButton-startIcon :is(svg, .material-icons)) { width: 40px; padding: 0; font-size: 0; justify-content: center; }
+    .MuiAppBar-root .MuiStack-root > .MuiButton-text:not(:has(.MuiButton-startIcon > img)) .MuiButton-startIcon { display: inline-flex; margin: 0; opacity: 1; }
+    .MuiAppBar-root .MuiStack-root > .MuiButton-text:not(:has(.MuiButton-startIcon > img)) .MuiButton-startIcon :is(.MuiSvgIcon-root, .material-icons) { width: 24px; height: 24px; font-size: 24px; }
+    .MuiAppBar-root .MuiStack-root > #ir-hdr-link { width: 40px; padding: 0 !important; font-size: 0 !important; justify-content: center; }
+    .MuiAppBar-root .MuiStack-root > #ir-hdr-link::before { content: "\2605"; font-size: 22px; line-height: 1; }
+}
+@media (min-width: 1600px) { .MuiAppBar-root .MuiStack-root > .MuiButton-text:not(.MuiButtonGroup-grouped):not(:has(.MuiButton-startIcon > img)) { padding: 0 16px; } }
+/* the right side: every header button is one 40 px glass orb, grid-centred, whatever plugin put it there (Jellyfin Enhanced moves buttons in and
+   out of its tray at run time, so nothing here depends on the grouping). Glyphs are 24 px boxes (a multiple of 4: (40 - 24) / 2 = 8 px lands on whole device pixels at 100 / 125 / 150 % scale, 20 px would not) with line-height 1: no baseline drift. */
+.MuiAppBar-root > .MuiToolbar-root:not(.MuiToolbar-root ~ *) > .MuiStack-root ~ * { flex: 0 0 auto; display: flex; align-items: center; gap: 8px; }
+/* The first group after the nav takes the free space and right-aligns its buttons (as stock Jellyfin does). NOT `margin-left: auto`: Jellyfin Enhanced's adaptive header tray counts the resolved
+   margin of a sibling as occupied space, so it believed ~140 px were free at every window width and pushed the Calendar (and Requests, the random button ...) into its "..." menu. */
+.MuiAppBar-root > .MuiToolbar-root:not(.MuiToolbar-root ~ *) > .MuiStack-root + * { flex: 1 1 auto; justify-content: flex-end; }
+.MuiAppBar-root > .MuiToolbar-root:not(.MuiToolbar-root ~ *) .je-header-actions-host, .MuiAppBar-root > .MuiToolbar-root:not(.MuiToolbar-root ~ *) #je-header-buttons-group { display: flex; align-items: center; gap: 8px; padding: 0; }
+/* Achievement Badges hides its strip (the element Jellyfin Enhanced puts its button tray in as well) with `body:has(#videoOsdPage) #ab-header-badges { display: none !important }` and a dozen
+   more of the same kind - meant for "a video is on screen", but Jellyfin keeps the hidden video page in the document after the FIRST playback, so after playing something the tray and the
+   badges were gone until a refresh. They live in the bar, and the bar is not there while the video page is the one on screen (html.dcs-video), so they are shown again whenever it is not.
+   The doubled id outranks the plugin's selectors (it has two ids as well, but no class); the plugin's own phone rule (max-width: 640px) stays in charge below that width. */
+@media (min-width: 641px) { html:not(.dcs-video) body #ab-header-badges#ab-header-badges { display: flex !important; } }
+.MuiAppBar-root > .MuiToolbar-root:not(.MuiToolbar-root ~ *) :is(.MuiIconButton-root, .headerButton):not(.headerBackButton):not(.headerHomeButton) {
+    display: inline-grid !important; place-items: center; box-sizing: border-box; flex: 0 0 auto; width: 40px !important; height: 40px !important; min-width: 0; padding: 0 !important; margin: 0 !important;
+    border-radius: 50%; color: var(--dcs-text-dim); line-height: 1; font-size: 20px; vertical-align: middle;
+    background: var(--dcs-glass); border: 1px solid var(--dcs-hairline);
+    box-shadow: inset 0 1px 0 oklch(1 0 0 / .07), 0 10px 26px -14px oklch(0 0 0 / .85);
+    transition: color .2s, background-color .2s, border-color .2s, transform .35s var(--dcs-ease), box-shadow .3s;
+}
+/* (no display override on the glyphs: some buttons keep a second, hidden svg - cast / cast-connected - and must stay hidden) */
+.MuiAppBar-root > .MuiToolbar-root:not(.MuiToolbar-root ~ *) :is(.MuiIconButton-root, .headerButton):not(.headerBackButton):not(.headerHomeButton) > :is(svg, .material-icons, i, .je-dice-spin, .MuiBadge-root) {
+    width: 24px !important; height: 24px !important; margin: 0 !important; padding: 0 !important; font-size: 24px !important; line-height: 1 !important; overflow: visible;
+}
+.MuiAppBar-root > .MuiToolbar-root:not(.MuiToolbar-root ~ *) :is(.MuiIconButton-root, .headerButton) .MuiBadge-root { display: grid; place-items: center; }
+.MuiAppBar-root > .MuiToolbar-root:not(.MuiToolbar-root ~ *) :is(.MuiIconButton-root, .headerButton) .MuiBadge-root > svg { width: 24px; height: 24px; }
+.MuiAppBar-root > .MuiToolbar-root:not(.MuiToolbar-root ~ *) :is(.MuiIconButton-root, .headerButton) .je-dice-spin { display: grid; place-items: center; }
+.MuiAppBar-root > .MuiToolbar-root:not(.MuiToolbar-root ~ *) :is(.MuiIconButton-root, .headerButton) .je-dice-face, .MuiAppBar-root > .MuiToolbar-root:not(.MuiToolbar-root ~ *) :is(.MuiIconButton-root, .headerButton) .je-dice-face svg { width: 24px; height: 24px; display: block; margin: 0; }
+.MuiAppBar-root > .MuiToolbar-root:not(.MuiToolbar-root ~ *) :is(.MuiIconButton-root, .headerButton):hover {
+    color: var(--dcs-text); background: var(--dcs-a14); border-color: var(--dcs-a35); transform: translateY(-2px);
+    box-shadow: inset 0 1px 0 oklch(1 0 0 / .1), 0 12px 28px -12px var(--dcs-a55);
+}
+.MuiAppBar-root > .MuiToolbar-root:not(.MuiToolbar-root ~ *) :is(.MuiIconButton-root, .headerButton):focus-visible { outline: 2px solid var(--dcs-accent) !important; outline-offset: 2px; }
+/* the notification bell (another plugin) styles itself by #id - an id beats every class selector above - so it gets the same orb explicitly */
+.MuiAppBar-root #netflix-bell {
+    display: inline-grid !important; place-items: center; box-sizing: border-box; flex: 0 0 auto; width: 40px !important; height: 40px !important; min-width: 0; padding: 0 !important; margin: 0 !important;
+    border-radius: 50%; color: var(--dcs-text-dim); line-height: 1; position: relative;
+    background: var(--dcs-glass) !important; border: 1px solid var(--dcs-hairline) !important; box-shadow: inset 0 1px 0 oklch(1 0 0 / .07), 0 10px 26px -14px oklch(0 0 0 / .85);
+    transition: color .2s, background-color .2s, border-color .2s, transform .35s var(--dcs-ease), box-shadow .3s;
+}
+.MuiAppBar-root #netflix-bell > svg { width: 24px !important; height: 24px !important; margin: 0 !important; }
+.MuiAppBar-root #netflix-bell:hover { color: var(--dcs-text); background: var(--dcs-a14) !important; border-color: var(--dcs-a35) !important; transform: translateY(-2px); box-shadow: inset 0 1px 0 oklch(1 0 0 / .1), 0 12px 28px -12px var(--dcs-a55); }
+/* glyphs that ElegantFin draws with ::before (cast, ...) get the same 24 px box as the svg ones, so the grid centres them exactly */
+.MuiAppBar-root > .MuiToolbar-root:not(.MuiToolbar-root ~ *) :is(.MuiIconButton-root, .headerButton):not(.headerBackButton):not(.headerHomeButton)::before {
+    display: block; width: 24px; height: 24px; margin: 0; padding: 0; font-size: 24px !important; line-height: 24px !important; text-align: center; vertical-align: baseline;
+}
+/* optical centring: Material glyphs sit in a 24-unit box that is not symmetric about its middle (magnifier, cast, chevrons). Measured as the offset of the
+   glyph's ink from the circle's rim at 100 / 125 / 150 % scale, then corrected here so every control is within 0.5 px */
+/* icon-FONT glyphs (Material Symbols) sit ~0.8 px high in a line-height:1 box; SVG glyphs do not. Measured at 100 / 125 / 150 %, corrected once here. */
+.MuiAppBar-root > .MuiToolbar-root:not(.MuiToolbar-root ~ *) :is(i.material-icons, span.material-icons) { transform: translateY(.8px); }
+.MuiAppBar-root > .MuiToolbar-root:not(.MuiToolbar-root ~ *) [aria-controls="app-remote-play-menu"]::before { transform: translateY(.8px); }
+.MuiAppBar-root > .MuiToolbar-root:not(.MuiToolbar-root ~ *) [aria-label="Search"] > svg { transform: translate(.3px, .3px); }
+/* the avatar orb: the photo fills the whole 40 px circle, the glass rim is its ring */
+.MuiAppBar-root > .MuiToolbar-root:not(.MuiToolbar-root ~ *) .MuiIconButton-root:has(.MuiAvatar-root) { position: relative; overflow: visible; border: 0 !important; background: none !important; box-shadow: 0 10px 26px -14px oklch(0 0 0 / .85); }
+.MuiAppBar-root > .MuiToolbar-root:not(.MuiToolbar-root ~ *) .MuiIconButton-root .MuiAvatar-root { width: 40px !important; height: 40px !important; margin: 0; border: 0 !important; }
+.MuiAppBar-root > .MuiToolbar-root:not(.MuiToolbar-root ~ *) .MuiIconButton-root:has(.MuiAvatar-root)::after { content: ""; position: absolute; inset: 0; border-radius: 50%; border: 1px solid var(--dcs-hairline-strong); pointer-events: none; }
+/* notification badges sit ON the orb's rim at 45 degrees (classic placement), cut out of the bar by a ring of the page colour. The avatar may not clip (MuiAvatar rounds its own photo), or a plugin's
+   dot inside the button is clipped to the circle and lands inside the picture: Plugin Update Notifier's dot (pluginUpdateNotifierBadge, top/right 0 in a 40 px square) and NotifySync's count on the bell (.ns-badge). */
+.MuiAppBar-root .MuiIconButton-root .pluginUpdateNotifierBadge { top: -1px !important; right: -1px !important; width: 12px !important; height: 12px !important; background: var(--dcs-alert) !important; box-shadow: 0 0 0 2px var(--dcs-ink-0) !important; z-index: 2 !important; }
+.MuiAppBar-root #netflix-bell .ns-badge { top: -5px !important; right: -6px !important; box-sizing: border-box; min-width: 18px; height: 18px; padding: 0 5px !important; border-radius: var(--dcs-r-pill) !important; background: var(--dcs-alert) !important; color: #fff !important;
+    font: 700 10.5px/18px var(--dcs-display) !important; text-align: center; font-variant-numeric: tabular-nums; box-shadow: 0 0 0 2px var(--dcs-ink-0) !important; z-index: 2; }
+/* auto-hide on scroll down, back on scroll up (custom.js toggles html.dcs-header-hidden) */
+.MuiAppBar-root { transition: transform .5s var(--dcs-ease), opacity .4s; }
+html.dcs-header-hidden .MuiAppBar-root:not(:focus-within):not(:hover) { transform: translateY(-120%); opacity: 0; pointer-events: none; }
+/* the equipped badges of Achievement Badges (custom.js turns each into a link to its own card, --dcs-fx-badgelink): they answer the pointer and the keyboard like the orbs around them. The plugin paints
+   their colour and glow inline, so the lift and the brightening are all that is added here; only a marked orb (data-dcs-badge) is touched. */
+#ab-header-badges > [data-dcs-badge] { transition: transform .35s var(--dcs-ease), filter .25s; }
+#ab-header-badges > [data-dcs-badge]:hover { transform: translateY(-2px) scale(1.07); filter: brightness(1.3) saturate(1.15); }
+#ab-header-badges > [data-dcs-badge]:focus-visible { outline: 2px solid var(--dcs-accent); outline-offset: 2px; }
+
+/* A route the 12.1 app bar has no phone layout for (KefinTweaks' #/watchlist) gets the desktop bar: its first button, the logo with the server name, is ~196 px wide and pushed the avatar onto a second row
+   (a 96 px bar). On a phone it is the round logo button alone; the name is one tap away. */
+.layout-mobile .MuiAppBar-root > .MuiToolbar-root > .MuiStack-root > .MuiButton-root:first-child { font-size: 0; min-width: 0; width: 48px; padding: 0; justify-content: center; }
+.layout-mobile .MuiAppBar-root > .MuiToolbar-root > .MuiStack-root > .MuiButton-root:first-child .MuiButton-startIcon { margin: 0; }
+/* the phone bar has no nav stack, so the 8 px gap above (written for "after the nav") misses its button group and the 40 px orbs touched */
+.layout-mobile .MuiAppBar-root > .MuiToolbar-root:not(.MuiToolbar-root ~ *) > .MuiBox-root:has(> .MuiIconButton-root) { display: flex; align-items: center; gap: 6px; }
+
+/* 5. HOME: GREETING, SECTIONS, COUNT CHIPS --------------------------------------
+   custom.js inserts .dcs-greeting on the home page. Section titles get an accent tick; custom.js adds a
+   count chip (data-dcs-count on the title). */
+.dcs-greeting { padding: 24px var(--sidePadding) 8px; user-select: none; animation: dcs-rise .9s var(--dcs-ease) both; }
+.dcs-greeting-hello { font-family: var(--dcs-serif); font-style: italic; font-weight: 400; font-size: clamp(2rem, 4.2vw, 3.6rem); line-height: 1.04; letter-spacing: -.01em; color: var(--dcs-text); }
+.dcs-greeting-hello b { font-weight: 400; background: linear-gradient(100deg, var(--dcs-accent), var(--dcs-accent-2) 55%, var(--dcs-accent-3)); -webkit-background-clip: text; background-clip: text; color: transparent; padding-right: .08em; }
+.dcs-greeting-sub { margin-top: .55rem; font: 500 .78rem/1 var(--dcs-display); letter-spacing: .22em; text-transform: uppercase; color: var(--dcs-text-mute); }
+.dcs-greeting-sub i { display: inline-block; width: 22px; height: 1px; background: var(--dcs-a55); vertical-align: middle; margin: 0 .8em .15em 0; }
+@keyframes dcs-rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+
+.sectionTitle { font-family: var(--dcs-display); font-weight: 650; letter-spacing: -.012em; font-size: 1.5rem; color: var(--dcs-text); }
+.verticalSection > .sectionTitleContainer .sectionTitle, .sectionTitleContainer-cards .sectionTitle, .sectionTitleTextButton > .sectionTitle { position: relative; padding-left: 16px !important; }
+.verticalSection > .sectionTitleContainer .sectionTitle::before, .sectionTitleContainer-cards .sectionTitle::before, .sectionTitleTextButton > .sectionTitle::before {
+    content: ""; position: absolute; left: 0; top: 50%; width: 4px; height: 1.05em; transform: translateY(-50%); border-radius: 4px;
+    background: linear-gradient(180deg, var(--dcs-accent), var(--dcs-accent-2)); box-shadow: 0 0 14px var(--dcs-a55);
+}
+.sectionTitle[data-dcs-count]::after {
+    content: attr(data-dcs-count); display: inline-block; margin-left: 12px; padding: 2px 10px; border-radius: 999px; vertical-align: .2em;
+    font: 600 .62em/1.4 var(--dcs-display); letter-spacing: .05em; color: var(--dcs-text-dim); background: oklch(1 0 0 / .07); border: 1px solid var(--dcs-hairline);
+}
+/* --dcs-fx-titles. Rows without a "see all" link (My Media, Continue Watching, ...) render their title as a bare h2 straight under .verticalSection, which the tick rules above never
+   matched: their text started at the poster edge while every other title started 16 px later, behind its tick. Same tick and same 16 px indent for all of them. */
+html:not(.dcs-off-titles) .verticalSection > .sectionTitle.padded-left { position: relative; padding-left: calc(var(--sidePadding) + 16px) !important; }
+html:not(.dcs-off-titles) .verticalSection > .sectionTitle.padded-left::before {
+    content: ""; position: absolute; left: var(--sidePadding); top: 50%; width: 4px; height: 1.05em; transform: translateY(-50%); border-radius: 4px;
+    background: linear-gradient(180deg, var(--dcs-accent), var(--dcs-accent-2)); box-shadow: 0 0 14px var(--dcs-a55);
+}
+.sectionTitleTextButton { transition: color .2s; }
+.sectionTitleTextButton .material-icons { transition: transform .3s var(--dcs-ease), color .2s; color: var(--dcs-accent); }
+.sectionTitleTextButton:hover .material-icons { transform: translateX(4px); }
+.sectionTitleTextButton:hover { color: var(--dcs-text); }
+
+[dir=ltr] .padded-left { padding-left: var(--sidePadding) !important; }
+[dir=ltr] .padded-right { padding-right: var(--sidePadding) !important; }
+/* posters: ElegantFin pads every card by .375em (1px on phones), so a poster started ~5.6 px to the right of the hero, the greeting and the section
+   titles. The horizontal rails start that much earlier: poster edge = title edge = hero edge. */
+.emby-scroller, .scrollX { padding-left: calc(var(--sidePadding) - var(--dcs-card-pad)); scroll-padding-inline: calc(var(--sidePadding) - var(--dcs-card-pad)); }
+#itemDetailPage .emby-scroller-container { margin: 0; padding-left: 0; }          /* (ElegantFin pulls out the WRAPPER of a row as well as the row: the web client puts this class on the parent of every row that has scroll arrows, Jellyfin Enhanced's Recommended / Similar sections are built that way, so a row was pulled out twice) */
+#itemDetailPage .emby-scroller, #itemDetailPage .scrollX { margin: 0 0 0 calc(var(--sidePadding) * -1); padding-left: calc(var(--sidePadding) - var(--dcs-card-pad)); }          /* (the ROW is pulled out, once: its wrapper .emby-scroller-container, a class the web client adds to the parent of any row with scroll arrows, stays where it is - pulling both moved Jellyfin Enhanced's Recommended / Similar rows twice) */
+/* KefinTweaks' "Episodes on series page" row (.series-episodes-section: "Season 1" ... of a show). The fork mounts it inside the page's primary column, which already has a gutter on BOTH sides, and its rail wears the
+   classes of a Home row (padded-left), so it started a gutter too far in (title at 2 x --sidePadding, posters 5.6 px late) and stopped a gutter short of the right edge. Same geometry as Cast & Crew / More like this:
+   title and posters at the gutter, the rail pulled out to both window edges. On a desktop layout the row scrolls by its own arrows (translateX, and its end stop already adds the closing gutter), so the spacer
+   above would be counted twice there; a phone scrolls natively (.scrollX) and keeps it. */
+#itemDetailPage .series-episodes-section .sectionTitleContainer.padded-left { padding-left: 0 !important; }
+#itemDetailPage .series-episodes-section .emby-scroller { margin-right: calc(var(--sidePadding) * -1); padding-left: calc(var(--sidePadding) - var(--dcs-card-pad)) !important; }
+#itemDetailPage .series-episodes-section .emby-scroller:not(.scrollX) > .scrollSlider::after { content: none; }
+/* THE END OF A ROW. A rail opens with a gutter (the padding above) and has to close with the same one. Two things stopped that. (1) The details page has a left gutter but no right one, so its
+   content ends exactly at the window edge; pulling every rail out by one gutter on BOTH sides (what this used to do) put the right end of the rail 64 px past the window, and Recommended /
+   More like this / Cast ended with the last card cut off by the screen. Only the left side is pulled out now: the rail starts at the window edge and ends at it. (2) Chrome does not add a
+   scroller's padding-right to how far it scrolls here (the cards overflow a slider that is exactly as wide as the scroller's content box), so even then the last card stopped flush with
+   the edge. A spacer as wide as the opening gutter closes the row: the last poster's edge sits where the section title's right gutter is. ElegantFin's own rule (which this one replaces) also pulls out the WRAPPER of a row
+   (.emby-scroller-container: the web client puts it on the parent of every row that has scroll arrows, Jellyfin Enhanced's Recommended / Similar sections are built that way), so those rows were
+   pulled out twice, up to 128 px past the window (123 px of the last poster off-screen); only the row itself is pulled now and the wrapper stays put. */
+.emby-scroller > .scrollSlider::after { content: ""; flex: 0 0 auto; width: calc(var(--sidePadding) - var(--dcs-card-pad) - var(--itemColumnGap, 0px)); }   /* minus the flex gap that separates it from the last card */
+.dcs-carousel .scrollSlider::after { content: none; }                   /* the recommendation carousel closes itself (padding-inline on its slider) */
+.itemsContainer.vertical-wrap { margin-left: calc(var(--dcs-card-pad) * -1); }
+
+/* 6. CARDS: GLASS POSTERS WITH A CURSOR SPOTLIGHT --------------------------------
+   custom.js writes --mx/--my (cursor inside the card, px) and --tx/--ty (tilt, -1..1) on the hovered
+   .card only. CSS draws: a soft light following the cursor, a luminous rim that brightens where the
+   cursor is, a gentle 3D tilt + lift. Overlays from other plugins ride along unchanged. */
+.cardScalable {
+    border: 1px solid var(--dcs-hairline) !important; border-radius: var(--dcs-r-md); background: var(--dcs-ink-2);
+    box-shadow: inset 0 1px 0 oklch(1 0 0 / .05), 0 14px 30px -20px oklch(0 0 0 / .95);
+    transition: transform .3s var(--dcs-ease), box-shadow .45s var(--dcs-ease), border-color .3s;
+}
+.cardScalable::before, .cardScalable::after { content: ""; position: absolute; inset: 0; pointer-events: none; opacity: 0; transition: opacity .35s; border-radius: inherit; }
+.cardScalable::after  { z-index: 4; background: radial-gradient(260px circle at var(--mx, 50%) var(--my, 30%), oklch(1 0 0 / .13), transparent 62%); }
+.cardScalable::before {
+    z-index: 5; padding: 1.5px;
+    background: radial-gradient(190px circle at var(--mx, 50%) var(--my, 30%), var(--dcs-accent), var(--dcs-accent-2) 45%, transparent 75%);
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor;
+    mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); mask-composite: exclude;
+}
+.card-hoverable:hover .cardScalable::before, .card-hoverable:hover .cardScalable::after { opacity: 1; }
+.card-hoverable:hover .cardScalable {
+    transform: perspective(900px) rotateX(calc(var(--ty, 0) * -5deg)) rotateY(calc(var(--tx, 0) * 6deg)) translateY(-6px) scale(1.035);
+    box-shadow: inset 0 1px 0 oklch(1 0 0 / .08), 0 34px 46px -26px oklch(0 0 0 / .95), 0 0 46px -14px var(--dcs-a35);
+    border-color: var(--dcs-a35) !important;
+}
+.card-hoverable .cardScalable:active { transform: scale(.985); transition-duration: .12s; }
+/* --dcs-fx-rails. ElegantFin widens a backdrop card to --resumeCardScale (1.2 above) only when it has watch progress, so a row that mixes them - Next Up nearly always, since Jellyfin puts the
+   episode you were halfway through first - had one wide card among narrower ones, its title lower than the rest. Every backdrop card in a row that holds a partly watched one gets the wide size. */
+@supports selector(:has(*)) {
+    html:not(.dcs-off-rails) .homeSectionsContainer .itemsContainer:has(> .overflowBackdropCard[data-positionticks]) > .overflowBackdropCard { width: calc(var(--cardWidth) * var(--resumeCardScale)) !important; }
+}
+html.dcs-no-tilt .card-hoverable:hover .cardScalable { transform: translateY(-4px) scale(1.02); }
+#castCollapsible .cardScalable, #guestCastContent .cardScalable { border-radius: 50%; }
+/* --dcs-fx-cast. ElegantFin clips a card's picture to its circle (overflow hidden on .cardScalable), and that is where two plugins draw their badges: Jellyfin Enhanced People Tags (a green
+   and a blue age chip in the top-left corner, the birthplace as a strip along the bottom) and ActorPlus (dark chips in the top-right corner, a flag and the birthplace at the bottom, all
+   children of the picture's link). The corners of a circle are not there, so the chips lost their corners and the place read "ng Beach, California, USA". The picture stays a circle and
+   nothing is drawn over the face any more: the badges become TAGS that hang off the LEFT rim, left-aligned, half outside the picture the way a sticker is stuck to a photo's edge:
+   the ages as a small stack at the top-left, the birthplace (or just its flag) as a pill at the bottom-left that grows upward over the chest, never over the face. Their size follows
+   the card (container query units on the picture's box), so on a narrow card they shrink instead of reaching for the face; on a very narrow one the age-at-release line gives way to the
+   current age. One look for both plugins (glass tag: the theme's ink, hairline, tabular numerals); where both plugins draw on one card, one set is shown. Only geometry and skin change; the
+   plugins keep drawing what they draw. .cardScalable becomes size-contained (aspect-ratio already gives it its size) so that letting it overflow cannot stretch it; the hover shine, a bar
+   that slid through the card and relied on that clipping, is clipped at its own circle instead; the "more" button sits inside the circle. */
+html:not(.dcs-off-cast) :is(#castCollapsible, #guestCastContent) .personCard { contain: layout style !important; }          /* (the card is paint-contained by default: that would cut a tag at the card's own edge, 7 px from the rim) */
+html:not(.dcs-off-cast) :is(#castCollapsible, #guestCastContent) .personCard .cardScalable { overflow: visible !important; contain: size layout style !important; container-type: inline-size; aspect-ratio: 1 / 1; }          /* (the tags' size follows this box: both plugins draw inside it) */
+html:not(.dcs-off-cast) :is(#castCollapsible, #guestCastContent) .personCard .cardImageContainer { border-radius: 50% !important; overflow: visible !important; contain: none !important; }          /* (Jellyfin gives the picture's link contain: strict, whose paint containment clips ActorPlus's badges, its children, at the circle however overflow is set) */
+html:not(.dcs-off-cast) :is(#castCollapsible, #guestCastContent) .personCard .cardOverlayContainer { border-radius: 50% !important; overflow: hidden !important; }
+html:not(.dcs-off-cast) :is(#castCollapsible, #guestCastContent) .personCard .cardPadder { position: absolute !important; inset: 0; height: auto !important; padding-bottom: 0 !important; border-radius: 50%; }
+html:not(.dcs-off-cast) :is(#castCollapsible, #guestCastContent) .personCard .cardOverlayButton-br { right: 20px; bottom: 20px; }
+/* the tags: one skin for both plugins (Jellyfin Enhanced keeps its green / blue age colours) */
+html:not(.dcs-off-cast) :is(#castCollapsible, #guestCastContent) .personCard :is(.birthage-line, .birthage-flag, .birthage-birthplace, .birthage-deceased, .birthage-badge, .je-people-place-banner) {
+    background: color-mix(in oklch, var(--dcs-ink-1) 90%, transparent) !important; border: 1px solid var(--dcs-hairline-strong); color: var(--dcs-text);
+    box-shadow: 0 6px 14px -6px oklch(0 0 0 / .85), inset 0 1px 0 oklch(1 0 0 / .07); font-weight: 560; font-variant-numeric: tabular-nums; letter-spacing: .01em;
+}
+html:not(.dcs-off-cast) :is(#castCollapsible, #guestCastContent) .personCard .je-people-age-chip { font-size: inherit !important; line-height: 1.3 !important; border-radius: var(--dcs-r-pill) !important; padding: .26em .62em .26em .5em !important; gap: .3em !important; box-shadow: 0 6px 14px -6px oklch(0 0 0 / .85); }
+html:not(.dcs-off-cast) :is(#castCollapsible, #guestCastContent) .personCard :is(.je-people-age-icon, .je-people-place-icon) { font-size: 1.2em !important; }
+/* age tags: a left-aligned stack hanging off the upper-left rim */
+html:not(.dcs-off-cast) :is(#castCollapsible, #guestCastContent) .personCard :is(.birthage-release-badge, .birthage-badge, .je-people-age-container) {
+    font-size: 11px; font-size: clamp(9px, 6cqw, 11.5px); line-height: 1.3; left: -.9em !important; right: auto !important; top: 2% !important; bottom: auto !important; transform: none !important;
+    display: flex !important; flex-direction: column !important; align-items: flex-start !important; gap: .25em !important;
+}
+html:not(.dcs-off-cast) :is(#castCollapsible, #guestCastContent) .personCard .birthage-line { font-size: inherit; line-height: inherit; padding: .26em .66em; border-radius: var(--dcs-r-pill); }
+html:not(.dcs-off-cast) :is(#castCollapsible, #guestCastContent) .personCard .birthage-badge { padding: .3em .75em; border-radius: var(--dcs-r-pill); }
+html:not(.dcs-off-cast) :is(#castCollapsible, #guestCastContent) .personCard .birthage-deceased { font-size: 11px; font-size: clamp(9px, 6cqw, 11.5px); line-height: 1.3; left: auto; right: -.7em; top: 2%; transform: none; padding: .3em .75em; border-radius: var(--dcs-r-pill); }   /* the status sits on the opposite rim: the left one is for ages */
+html:not(.dcs-off-cast) :is(#castCollapsible, #guestCastContent) .personCard .birthage-deceased-mask { border-radius: 50%; }
+/* the place: a pill on the lower-left rim (as wide as its text, up to the picture's width), growing upward; its flag alone becomes a small round orb */
+html:not(.dcs-off-cast) :is(#castCollapsible, #guestCastContent) .personCard .birthage-flag { font-size: 11px; font-size: clamp(9px, 6cqw, 11.5px); left: -.6em; right: auto; bottom: -.5em; transform: none; z-index: 5; box-sizing: border-box; width: 2em; height: 2em; padding: .25em; border-radius: 50%; display: grid; place-items: center; }
+html:not(.dcs-off-cast) :is(#castCollapsible, #guestCastContent) .personCard .birthage-flag img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
+html:not(.dcs-off-cast) :is(#castCollapsible, #guestCastContent) .personCard .birthage-birthplace {
+    font-size: 11px; font-size: clamp(9px, 6cqw, 11.5px); line-height: 1.25; left: -.9em; right: auto; bottom: -.7em; transform: none; width: max-content; max-width: calc(100% + .9em); box-sizing: border-box; white-space: normal; align-items: center; z-index: 5;
+    gap: .5em; padding: .3em .8em .3em .4em; border-radius: 1.2em;
+}
+html:not(.dcs-off-cast) :is(#castCollapsible, #guestCastContent) .personCard .birthage-birthplace img { width: 1.6em; height: 1.6em; border-radius: 50%; object-fit: cover; }
+html:not(.dcs-off-cast) :is(#castCollapsible, #guestCastContent) .personCard .birthage-birthplace-text { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; white-space: normal; overflow: hidden; text-overflow: ellipsis; font-size: inherit; line-height: inherit; min-width: 0; }
+html:not(.dcs-off-cast) :is(#castCollapsible, #guestCastContent) .personCard .je-people-place-banner {
+    font-size: 11px; font-size: clamp(9px, 6cqw, 11.5px) !important; line-height: 1.25; left: -.9em !important; right: auto !important; bottom: -.7em !important; transform: none; width: max-content; max-width: calc(100% + .9em); box-sizing: border-box;
+    border-radius: 1.2em; padding: .3em .8em .3em .5em !important; gap: .45em !important; z-index: 5 !important;
+}
+html:not(.dcs-off-cast) :is(#castCollapsible, #guestCastContent) .personCard .je-people-place-text { display: -webkit-box !important; -webkit-box-orient: vertical; -webkit-line-clamp: 2; white-space: normal !important; overflow: hidden !important; text-overflow: ellipsis !important; flex: 0 1 auto !important; min-width: 0; }
+@supports selector(:has(*)) {
+    html:not(.dcs-off-cast) :is(#castCollapsible, #guestCastContent):has(.je-people-place-banner, .birthage-birthplace, .birthage-flag) .personCard .cardText-first { margin-top: 14px; }
+    html:not(.dcs-off-cast) :is(#castCollapsible, #guestCastContent) .personCard:has(.je-people-age-container) .birthage-release-badge,
+    html:not(.dcs-off-cast) :is(#castCollapsible, #guestCastContent) .personCard:has(.je-people-place-banner) :is(.birthage-flag, .birthage-birthplace) { display: none !important; }
+}
+/* a wide picture has room for a third line of the place; a narrow card: the age at release gives way to the current age and the place pill drops its pin */
+@container (min-width: 184px) {
+    html:not(.dcs-off-cast) :is(#castCollapsible, #guestCastContent) .personCard :is(.birthage-birthplace-text, .je-people-place-text) { -webkit-line-clamp: 3; }
+}
+@container (max-width: 120px) {
+    html:not(.dcs-off-cast) :is(#castCollapsible, #guestCastContent) .personCard :is(.birthage-line-primary, .je-people-age-release):not(:only-child) { display: none !important; }
+    html:not(.dcs-off-cast) :is(#castCollapsible, #guestCastContent) .personCard :is(.birthage-birthplace-text, .je-people-place-text, .je-people-place-icon, .je-people-age-icon) { display: none !important; }
+    html:not(.dcs-off-cast) :is(#castCollapsible, #guestCastContent) .personCard .birthage-birthplace { gap: 0; padding: .25em; border-radius: 50%; width: 2em; height: 2em; display: grid; place-items: center; left: -.6em; bottom: -.5em; }
+    html:not(.dcs-off-cast) :is(#castCollapsible, #guestCastContent) .personCard .je-people-place-banner { gap: 0 !important; padding: .25em !important; border-radius: 50% !important; width: 2em; height: 2em; display: grid !important; place-items: center; left: -.6em !important; bottom: -.5em !important; }
+    html:not(.dcs-off-cast) :is(#castCollapsible, #guestCastContent) .personCard :is(.birthage-birthplace img, .je-people-flag) { width: 100% !important; height: 100% !important; border-radius: 50%; object-fit: cover; }
+}
+.cardText { font-family: var(--dcs-display); }
+.cardText-first, .cardText-first a { color: var(--dcs-text); font-weight: 560; letter-spacing: -.005em; }
+.cardText-secondary { color: var(--dcs-text-mute); font-size: .82em; }
+.card-hoverable .cardText-first a { transition: color .2s; }
+.card-hoverable:hover .cardText-first a { color: var(--dcs-accent); }
+/* progress bars: gradient + glow (ElegantFin draws the track) */
+.itemProgressBar { height: 4px; border-radius: 4px; background: oklch(1 0 0 / .14); overflow: hidden; }
+.itemProgressBarForeground { background: linear-gradient(90deg, var(--dcs-accent-2), var(--dcs-accent)) !important; box-shadow: 0 0 12px var(--dcs-a55); border-radius: 4px; }
+
+/* 7. HERO (MEDIA BAR) -----------------------------------------------------------
+   Geometry belongs to the Media Bar + ElegantFin; only the skin changes here: an orbiting conic hairline,
+   a soft halo, a vignette, a refined meta line and a luminous Play pill. */
+#slides-container { animation: dcs-orbit 16s linear infinite; }
+@keyframes dcs-orbit { to { --dcs-angle: 360deg; } }
+#slides-container .slide {
+    border: 1px solid transparent; border-radius: var(--dcs-r-lg);
+    box-shadow: 0 40px 90px -46px var(--dcs-a55), 0 0 0 1px oklch(1 0 0 / .05);
+}
+/* HERO AMBIENCE. custom.js bakes a soft, blurred, edge-faded 96x54 copy of the active slide's artwork (canvas, once per slide, ~3 KB) and hands it to these two
+   pseudo-elements as --dcs-amb-a / --dcs-amb-b, cross-fading them with .dcs-amb-flip. It sits behind the card, so the card and its faded edges float in the
+   artwork's own colours. There is NO css filter and NO backdrop-filter anywhere near the playing trailer: the glow is just a small bitmap stretched behind the card. */
+#slides-container::before, #slides-container::after {
+    content: ""; position: absolute; z-index: -1; pointer-events: none; will-change: opacity;
+    inset: -64px calc(var(--sidePadding) * -1) -96px; background-size: 100% 100%; background-repeat: no-repeat;
+    opacity: 0; transition: opacity 1.6s var(--dcs-ease-io);
+}
+#slides-container::before { background-image: var(--dcs-amb-a, none); }
+#slides-container::after  { background-image: var(--dcs-amb-b, none); }
+#slides-container:not(.dcs-amb-flip)::before, #slides-container.dcs-amb-flip::after { opacity: var(--dcs-amb-op); }
+html.dcs-no-ambient #slides-container::before, html.dcs-no-ambient #slides-container::after { display: none; }
+/* SEAM. ElegantFin switches off the plugin's own fade on the poster, which left a hard vertical edge where the poster meets the trailer. The poster now dissolves
+   over its right 58 %, and the trailer's left, right, top and bottom edges dissolve into the card (same two mask layers the plugin already uses: no extra render pass). */
+#slides-container .slide .backdrop.with-video {
+    -webkit-mask-image: linear-gradient(to right, #000 42%, transparent 100%); mask-image: linear-gradient(to right, #000 42%, transparent 100%);
+}
+#slides-container .slide .video-container {
+    --dcs-vm-l0: 2%; --dcs-vm-l1: 26%; --dcs-vm-r: 88%; --dcs-vm-t: 12%; --dcs-vm-b: 84%;
+    -webkit-mask-image: linear-gradient(to right, transparent var(--dcs-vm-l0), #000 var(--dcs-vm-l1), #000 var(--dcs-vm-r), transparent 100%), linear-gradient(to bottom, transparent 0%, #000 var(--dcs-vm-t), #000 var(--dcs-vm-b), transparent 100%);
+    mask-image: linear-gradient(to right, transparent var(--dcs-vm-l0), #000 var(--dcs-vm-l1), #000 var(--dcs-vm-r), transparent 100%), linear-gradient(to bottom, transparent 0%, #000 var(--dcs-vm-t), #000 var(--dcs-vm-b), transparent 100%);
+    -webkit-mask-composite: source-in; mask-composite: intersect;
+    transition: opacity .5s ease-in-out, --dcs-vm-l0 .6s var(--dcs-ease), --dcs-vm-l1 .6s var(--dcs-ease), --dcs-vm-r .6s var(--dcs-ease), --dcs-vm-t .6s var(--dcs-ease), --dcs-vm-b .6s var(--dcs-ease);   /* (the plugin's own opacity fade first) */
+}
+/* REVEAL. Rest the pointer on the trailer (custom.js waits ~180 ms so passing over it does nothing) and the card turns into a screen: the wash, the cover art and the title block all fade
+   away and the trailer's soft edges open out until it fills the whole card; nothing is left between you and the picture (custom.js turns its sound up at the same moment). Move the pointer back
+   to the left and it all returns: the cover art, the text, the wash, and the trailer steps back behind its soft edges. Only opacity, translate and the stops of the trailer's edge mask change, on
+   layers that already exist; nothing is resized or re-laid out, the gear / mute / pause cluster, the arrows and the dots stay above all of it. No hover (touch) or prefers-reduced-motion: no drift. */
+#slides-container .slide .backdrop.with-video { transition: filter .3s ease-in-out, transform .3s ease-in-out, opacity .55s var(--dcs-ease), translate .6s var(--dcs-ease); }
+#slides-container .slide .slide-content { transition: opacity .45s var(--dcs-ease), translate .6s var(--dcs-ease); }
+/* THE DIM, at rest: the card has its wash: a vignette in the top-right corner, a fade along the bottom edge and a sweep from the left that keeps the title block readable over the cover art. */
+#slides-container .slide.active .gradient-overlay::before {
+    content: ""; position: absolute; inset: 0; pointer-events: none; opacity: 1; transition: opacity .55s var(--dcs-ease);
+    background:
+        radial-gradient(120% 100% at 100% 0%, transparent 58%, oklch(.10 .012 255 / .45) 100%),
+        linear-gradient(90deg, oklch(.10 .012 255 / .74) 0%, oklch(.10 .012 255 / .38) 36%, transparent 64%),
+        linear-gradient(0deg, oklch(.10 .012 255 / .6) 0%, transparent 40%);
+}
+#slides-container.dcs-reveal .slide.active .backdrop.with-video { opacity: 0; translate: -5% 0; }
+#slides-container.dcs-reveal .slide.active .gradient-overlay::before { opacity: 0; }
+#slides-container.dcs-reveal .slide.active .slide-content:not(:has(:focus-visible)) { opacity: 0; translate: -24px 0; pointer-events: none; }
+#slides-container.dcs-reveal .slide.active .video-container { --dcs-vm-l0: 0%; --dcs-vm-l1: 3%; --dcs-vm-r: 97%; --dcs-vm-t: 3%; --dcs-vm-b: 97%; }
+#slides-container .slide.active::after {
+    content: ""; position: absolute; inset: 0; z-index: 20; pointer-events: none; border-radius: inherit; padding: 1.5px;
+    background: conic-gradient(from var(--dcs-angle), transparent 0deg, var(--dcs-accent) 55deg, var(--dcs-accent-2) 105deg, transparent 175deg, transparent 215deg, var(--dcs-accent-3) 285deg, transparent 350deg);
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor;
+    mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); mask-composite: exclude;
+    opacity: calc(.55 + .35 * var(--dcs-glow));
+}
+#slides-container .slide.active .gradient-overlay { background: none !important; }   /* the wash is drawn by ::before above (it has to be able to fade) */
+#slides-container .slide .logo { filter: drop-shadow(0 8px 26px oklch(0 0 0 / .65)); }
+#slides-container .plot { color: var(--dcs-text-dim); }   /* no text-shadow here: .plot-container clips its own overflow, so a blurred shadow would show a hard-edged box */
+#slides-container .spec-line { font-family: var(--dcs-display); font-weight: 560; letter-spacing: .12em; font-variant-numeric: tabular-nums; color: var(--dcs-text); }
+#slides-container .spec-item { border-color: var(--dcs-hairline-strong) !important; }
+#slides-container .spec-cert { border: 1px solid var(--dcs-hairline-strong); border-radius: 6px; background: oklch(1 0 0 / .06); }
+#slides-container .spec-rail { background: oklch(1 0 0 / .10); }
+#slides-container .spec-progress { background: linear-gradient(90deg, var(--dcs-accent-2), var(--dcs-accent)) !important; box-shadow: 0 0 14px var(--dcs-a55); }
+/* The plugin gives .slide-content overflow:hidden (to cap tall text), which cut the Play pill's glow at the left/bottom edge of that box.
+   overflow:clip with a 56 px clip margin keeps the cap but lets every glow fade out completely. */
+#slides-container .slide-content { overflow: clip !important; overflow-clip-margin: 56px; }
+/* the three actions share one 48 px height: Play pill + two round buttons; glyphs are grid-centred 22 px */
+#slides-container .button-container { gap: 12px; align-items: center; }
+#slides-container .play-button {
+    position: relative; overflow: hidden; box-sizing: border-box; height: 48px !important; padding: 0 28px 0 24px !important; gap: 8px;
+    border: 0 !important; border-radius: var(--dcs-r-pill) !important; line-height: 1;
+    background: linear-gradient(120deg, var(--dcs-accent), var(--dcs-accent-2)) !important; color: var(--dcs-accent-ink) !important; font: 700 16px/1 var(--dcs-display);
+    box-shadow: inset 0 1px 0 oklch(1 0 0 / .45), 0 10px 32px -10px var(--dcs-a55), 0 0 28px -8px var(--dcs-a35);
+    transition: transform .35s var(--dcs-ease), box-shadow .35s var(--dcs-ease), filter .3s;
+}
+#slides-container .play-button * { color: inherit !important; }
+#slides-container .play-button::before { font-size: 22px; line-height: 1; margin: 0; }
+#slides-container .play-button::after {
+    content: ""; position: absolute; top: -20%; bottom: -20%; left: 0; width: 42%; pointer-events: none;
+    background: linear-gradient(100deg, transparent, oklch(1 0 0 / .55), transparent); transform: translateX(-170%) skewX(-18deg);
+    animation: dcs-sheen 6.5s var(--dcs-ease-io) 1.6s infinite;
+}
+@keyframes dcs-sheen { 0%, 58% { transform: translateX(-170%) skewX(-18deg); } 100% { transform: translateX(420%) skewX(-18deg); } }
+#slides-container .play-button:hover { transform: translateY(-2px) scale(1.03); filter: saturate(1.15); box-shadow: inset 0 1px 0 oklch(1 0 0 / .5), 0 16px 40px -10px var(--dcs-a55), 0 0 40px -8px var(--dcs-a55); }
+#slides-container :is(.detail-button, .favorite-button, .trailer-button) {
+    display: inline-grid !important; place-items: center; box-sizing: border-box; width: 48px !important; height: 48px !important; margin: 0 !important; padding: 0 !important; border-radius: 50% !important;
+    background: oklch(.14 .013 255 / .55) !important; border: 1px solid var(--dcs-hairline-strong) !important; color: var(--dcs-text) !important; line-height: 1;   /* no backdrop-filter: these sit over the playing trailer */
+    -webkit-backdrop-filter: none; backdrop-filter: none;
+    transition: transform .3s var(--dcs-ease), background .25s, border-color .25s, box-shadow .3s;
+}
+#slides-container :is(.detail-button, .favorite-button)::before { font-size: 22px; line-height: 1; margin: 0; }
+#slides-container :is(.detail-button, .favorite-button, .trailer-button):hover { background: var(--dcs-a22) !important; border-color: var(--dcs-a55) !important; transform: translateY(-2px); box-shadow: 0 10px 26px -10px var(--dcs-a55); }
+/* top-right control cluster (gear, mute, pause = the plugin's own buttons, restyled): identical 40 px glass circles, 8 px apart, 16 px from the corner,
+   one icon size and weight, glyph box 24 px (multiple of 4: whole device pixels at 100 / 125 / 150 %) with line-height 1 so it is centred by the grid, not by font metrics */
+#slides-container#slides-container .ss-chrome {
+    position: absolute !important; top: 16px !important; bottom: auto !important; left: auto !important; z-index: 12; box-sizing: border-box;
+    display: grid !important; place-items: center; width: 40px !important; height: 40px !important; margin: 0 !important; padding: 0 !important;
+    border-radius: 50%; color: var(--dcs-text) !important; text-shadow: none !important; cursor: pointer; opacity: .9 !important; visibility: visible !important;
+    background: oklch(.14 .013 255 / .62) !important; border: 1px solid var(--dcs-hairline-strong) !important;   /* smoked, not frosted: no backdrop-filter over the playing trailer */
+    -webkit-backdrop-filter: none; backdrop-filter: none;
+    box-shadow: inset 0 1px 0 oklch(1 0 0 / .07), 0 10px 26px -12px oklch(0 0 0 / .8);
+    transition: transform .3s var(--dcs-ease), background .25s, border-color .25s, box-shadow .3s, opacity .25s;
+}
+#slides-container#slides-container .pause-button { right: 16px !important; }
+#slides-container#slides-container .volume-toggle { right: 64px !important; }
+#slides-container#slides-container .ss-settings-toggle { right: 112px !important; }
+#slides-container#slides-container .ss-chrome i, #slides-container#slides-container .arrow i {
+    display: block; width: 24px; height: 24px; margin: 0; padding: 0; font-size: 24px !important; line-height: 24px !important; text-align: center; overflow: visible;
+    --fill: 1; --wght: 500; --opsz: 24;
+}
+#slides-container#slides-container .ss-chrome i { transform: translateY(.95px); }
+#slides-container#slides-container .volume-toggle i { transform: translate(.4px, .45px); }
+#slides-container#slides-container .arrow i { transform: translateY(.8px); }
+#slides-container#slides-container .left-arrow i { transform: translate(.25px, .8px); }
+#slides-container#slides-container .right-arrow i { transform: translate(.3px, .8px); }
+#slides-container#slides-container .ss-chrome:hover, #slides-container#slides-container .ss-chrome:focus-visible {
+    opacity: 1 !important; background: var(--dcs-a22) !important; border-color: var(--dcs-a55) !important; transform: translateY(-2px); box-shadow: 0 10px 26px -10px var(--dcs-a55);
+}
+#slides-container#slides-container .ss-chrome:focus-visible, #slides-container#slides-container .arrow:focus-visible { outline: 2px solid var(--dcs-accent) !important; outline-offset: 2px; }
+/* slide arrows: same 40 px orb, mirrored into the bottom-right corner (16 px inset, 8 px gap) */
+#slides-container#slides-container .arrow {
+    position: absolute !important; top: auto !important; bottom: 16px !important; left: auto !important; transform: none !important; box-sizing: border-box;
+    display: grid !important; place-items: center; width: 40px !important; height: 40px !important; margin: 0 !important; padding: 0 !important; border-radius: 50%;
+    background: oklch(.14 .013 255 / .62) !important; border: 1px solid var(--dcs-hairline-strong) !important; color: var(--dcs-text) !important;
+    -webkit-backdrop-filter: none; backdrop-filter: none;
+    transition: transform .3s var(--dcs-ease), background .25s, border-color .25s, box-shadow .3s, opacity .25s;
+}
+#slides-container#slides-container .right-arrow { right: 16px !important; }
+#slides-container#slides-container .left-arrow { right: 64px !important; }
+#slides-container#slides-container .arrow:hover { background: var(--dcs-a22) !important; border-color: var(--dcs-a55) !important; transform: translateY(-2px) !important; box-shadow: 0 10px 26px -10px var(--dcs-a55); }
+#slides-container#slides-container .dot { background: oklch(1 0 0 / .28) !important; border-radius: 999px; transition: width .5s var(--dcs-ease), background .3s; }
+#slides-container#slides-container .dot.active { background: linear-gradient(90deg, var(--dcs-accent), var(--dcs-accent-2)) !important; box-shadow: 0 0 12px var(--dcs-a55); opacity: 1; }
+/* position indicator: with custom.js running the dots are plain and equal and ONE pill (.dcs-worm) slides between them, following next / previous and wrapping in the direction of
+   travel (custom.js, position indicator block). Without it the plugin's own growing pill above stays. 8 px dots on a 20 px pitch, 24 x 8 px pill. */
+html.dcs-dots #slides-container#slides-container .dots-container { gap: 12px; }
+html.dcs-dots #slides-container#slides-container .dot,
+html.dcs-dots #slides-container#slides-container .dot.active { width: 8px; height: 8px; margin: 0; transform: none; border-radius: 50%; background: oklch(1 0 0 / .28) !important; box-shadow: none; opacity: 1; transition: none; }
+.dcs-worm { position: absolute; left: 0; top: 0; z-index: 1; border-radius: 999px; pointer-events: none; will-change: transform, width, opacity;
+    background: linear-gradient(90deg, var(--dcs-accent), var(--dcs-accent-2)); box-shadow: 0 0 12px var(--dcs-a55); }
+/* the slide dots share the centre line of the corner controls (bottom-left dots / bottom-right arrows on desktop, top-left dots / top-right cluster on phones) */
+#slides-container#slides-container.layout-marquee .dots-container { top: auto !important; bottom: 16px !important; height: 40px !important; padding: 0 !important; align-items: center; }
+:root.layout-mobile #slides-container#slides-container.layout-marquee .dots-container { top: 16px !important; bottom: auto !important; }
+/* the plugin's settings drawer */
+.ss-settings { border-radius: var(--dcs-r-md) !important; border: 1px solid var(--dcs-hairline-strong) !important; background: var(--dcs-glass-strong) !important;
+    -webkit-backdrop-filter: blur(28px) saturate(1.6); backdrop-filter: blur(28px) saturate(1.6); box-shadow: inset 0 1px 0 oklch(1 0 0 / .07), 0 30px 80px -20px oklch(0 0 0 / .85); }
+.ss-settings-head h2 { font-family: var(--dcs-display); }
+
+/* 7b. HERO PLACEHOLDER + EMPTY-SHELL GUARDS (custom.js hero watchdog) -----------------------
+   #dcs-hero-skel holds the hero's place while the Media Bar has not delivered anything yet (same box as ElegantFin gives #slides-container). html.dcs-hero-off means every rebuild
+   failed: the blank screen the plugin reserves for its hero is collapsed. An empty #slides-container (controls but no slide) shows no controls and takes no clicks. */
+#dcs-hero-skel {
+    position: absolute; z-index: 0; box-sizing: border-box; overflow: hidden; pointer-events: none; user-select: none;
+    top: calc(var(--appBarHeight) * 2 + 1.25em); left: var(--sidePadding); width: calc(100vw - var(--sidePadding) * 2); height: 62%;
+    border-radius: var(--dcs-r-lg); border: 1px solid var(--dcs-hairline-strong);
+    background: radial-gradient(90% 120% at 10% 100%, var(--dcs-a22), transparent 62%), linear-gradient(135deg, oklch(.24 .024 var(--dcs-h) / .8), oklch(.16 .014 255 / .92));
+    box-shadow: 0 40px 90px -46px var(--dcs-a55), 0 0 0 1px oklch(1 0 0 / .04);
+    opacity: 0; animation: dcs-skel-in .5s var(--dcs-ease) .1s forwards;
+}
+@media (min-width: 75em) { #dcs-hero-skel { top: calc(var(--appBarHeight) + 1.25em); } }
+@media not all and (min-width: 75em) { #dcs-hero-skel { --appBarHeight: calc((var(--ef12-appBarHeight) + max(env(safe-area-inset-top), var(--safe-area-inset-top, 0px))) / 2); } }   /* the Jellyfin 12 companion does the same to #slides-container */
+@media only screen and (max-height: 767px) and (orientation: landscape) { #dcs-hero-skel { height: 57%; } }
+html:not([data-dcs-route="home"]) #dcs-hero-skel { display: none; }
+#dcs-hero-skel.dcs-leave { animation: none; opacity: 0; transition: opacity .4s var(--dcs-ease); }
+#dcs-hero-skel::after { content: ""; position: absolute; inset: 0; background: linear-gradient(100deg, transparent 30%, oklch(1 0 0 / .07) 50%, transparent 70%); transform: translateX(-100%); animation: dcs-skel-sweep 2s ease-in-out infinite; }
+#dcs-hero-skel i { position: absolute; left: 32px; display: block; height: 12px; border-radius: 8px; background: oklch(1 0 0 / .08); }
+#dcs-hero-skel .dcs-sk-t { bottom: 216px; width: min(46%, 460px); height: 64px; border-radius: 12px; }
+#dcs-hero-skel .dcs-sk-m { bottom: 180px; width: min(30%, 300px); }
+#dcs-hero-skel .dcs-sk-l { bottom: 144px; width: min(52%, 520px); }
+#dcs-hero-skel .dcs-sk-s { bottom: 120px; width: min(36%, 360px); }
+#dcs-hero-skel .dcs-sk-b { position: absolute; left: 32px; bottom: 56px; display: flex; gap: 12px; }
+#dcs-hero-skel .dcs-sk-b i { position: static; width: 136px; height: 48px; border-radius: 24px; }
+#dcs-hero-skel .dcs-sk-b i + i { width: 48px; }
+@media (max-width: 767px) { #dcs-hero-skel i, #dcs-hero-skel .dcs-sk-b { left: 20px; } }
+@keyframes dcs-skel-in { to { opacity: 1; } }
+@keyframes dcs-skel-sweep { to { transform: translateX(100%); } }
+html.dcs-hero-off[data-dcs-route="home"] body:has(#reactRoot):has(#reactRoot) .homeSectionsContainer.homeSectionsContainer { margin-top: 0 !important; top: 0 !important; }   /* (ids in the selector: it has to outrank the Jellyfin 12 companion's own `top` for an empty hero) */
+html.dcs-hero-off #slides-container, html.dcs-hero-off #dcs-hero-skel { display: none !important; }
+#slides-container:not(:has(.slide.active)) { pointer-events: none; }
+#slides-container#slides-container:not(:has(.slide.active)) > :is(.ss-chrome, .arrow, .dots-container) { visibility: hidden !important; }
+
+/* 8. DETAIL PAGES ---------------------------------------------------------------
+   The backdrop is the star. Below it: glass panels, a gradient primary button, a lit title. */
+#itemDetailPage .itemName { font-family: var(--dcs-display); font-weight: 750; letter-spacing: -.03em; text-shadow: 0 6px 40px oklch(0 0 0 / .7); }
+.mainDetailButtons .detailButton.btnPlay {
+    background: linear-gradient(120deg, var(--dcs-accent), var(--dcs-accent-2)) !important; color: var(--dcs-accent-ink) !important; border: 0 !important;
+    border-radius: var(--dcs-r-pill) !important; font-weight: 700;
+    box-shadow: inset 0 1px 0 oklch(1 0 0 / .45), 0 12px 34px -10px var(--dcs-a55);
+    transition: transform .35s var(--dcs-ease), box-shadow .35s var(--dcs-ease);
+}
+.mainDetailButtons .detailButton.btnPlay * { color: inherit !important; }
+.mainDetailButtons .detailButton.btnPlay:hover { transform: translateY(-2px) scale(1.03); box-shadow: inset 0 1px 0 oklch(1 0 0 / .5), 0 18px 44px -10px var(--dcs-a55), 0 0 40px -6px var(--dcs-a35); }
+.detailButton:not(.btnPlay) { border-radius: var(--dcs-r-pill); transition: background .2s, transform .3s var(--dcs-ease); }
+.detailButton:not(.btnPlay):hover { background: oklch(1 0 0 / .10) !important; transform: translateY(-1px); }
+.itemMiscInfo, .itemMiscInfo span { font-variant-numeric: tabular-nums; }
+.itemDetailsGroup, .streaming-lookup-container {
+    border-radius: var(--dcs-r-md) !important; background: var(--dcs-glass) !important; border: 1px solid var(--dcs-hairline) !important; overflow: hidden;
+    -webkit-backdrop-filter: blur(18px) saturate(1.4); backdrop-filter: blur(18px) saturate(1.4);
+}
+.detailsGroupItem { border-color: var(--dcs-hairline) !important; }
+.detailsGroupItem .label, .itemDetailsGroup .label { color: var(--dcs-text); font-family: var(--dcs-display); font-weight: 600; letter-spacing: -.005em; }
+.listItem, .paperList { border-radius: var(--dcs-r-sm); }
+.listItem:hover { background: oklch(1 0 0 / .06); }
+/* parallax: custom.js writes --dcs-py (px, 0..40) while a detail page scrolls */
+html[data-dcs-route="details"] :is(.backdropContainer, #dcs-bd) { transform: translate3d(0, calc(var(--dcs-py, 0) * -1px), 0) scale(1.05); transform-origin: 50% 0; }
+
+/* The clear logo on a PHONE (layout-mobile). ElegantFin pins it at top:45vh for the layout before Jellyfin 12, where it lands on the meta line and the Play row (the title it replaces is hidden, so nothing made room for it).
+   Here it is an ordinary block on the backdrop's lower edge - 96 px up into the picture, 20 px below it - and the page follows it; the small poster card that straddles the same edge steps aside, because the logo IS
+   the title. Without a logo (.hide) the title and the poster stay as they were. */
+.layout-mobile #itemDetailPage .detailLogo:not(.hide) {
+    position: relative; top: 0; left: 0; margin: -96px auto 0; width: min(82vw, 360px); height: 116px; max-height: none; animation: none; transform: none;
+    background-position: center bottom; background-size: contain; z-index: 1;
+}
+.layout-mobile #itemDetailPage:has(.detailLogo:not(.hide)) .detailImageContainer > .card { display: none; }
+/* the action row under Play: ElegantFin pads it 18 px a side and gives each icon 7.2 px of margin, so the sixth icon (Kefin's Watchlist and Jellyfin Enhanced's buttons add two) wrapped onto a line of its own */
+.layout-mobile #itemDetailPage .mainDetailButtons { padding-inline: 0; }
+.layout-mobile #itemDetailPage .mainDetailButtons > .detailButton:not(.btnPlay) { margin-inline: 5px; }
+
+/* 9. MENUS, DIALOGS, POPOVERS, DRAWER, TOASTS ---------------------------------- */
+.MuiPopover-paper, .MuiMenu-paper, .MuiDialog-paper, .MuiDrawer-paper, .MuiTooltip-tooltip, .MuiSnackbarContent-root,
+.dialog, .formDialog, .actionSheet, .mainDrawer, .toast {
+    background: var(--dcs-glass-strong) !important; border: 1px solid var(--dcs-hairline-strong) !important; border-radius: var(--dcs-r-md);
+    -webkit-backdrop-filter: blur(28px) saturate(1.6); backdrop-filter: blur(28px) saturate(1.6);
+    box-shadow: inset 0 1px 0 oklch(1 0 0 / .07), 0 30px 80px -20px oklch(0 0 0 / .85) !important;
+}
+.mainDrawer { border-radius: 0 var(--dcs-r-lg) var(--dcs-r-lg) 0; border-left: 0 !important; }
+.MuiMenuItem-root, .actionSheetMenuItem, .navMenuOption { border-radius: var(--dcs-r-xs); transition: background .2s; }
+.MuiMenuItem-root:hover, .actionSheetMenuItem:hover, .navMenuOption:hover { background: oklch(1 0 0 / .08) !important; }
+.MuiMenuItem-root.Mui-selected, .navMenuOption-selected { background: var(--dcs-a14) !important; color: var(--dcs-accent); }
+.dialogBackdrop, .MuiBackdrop-root:not(.MuiBackdrop-invisible) { background: oklch(.08 .01 255 / .62) !important; -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+.MuiPopover-paper .MuiListItemIcon-root, .actionSheetMenuItem .material-icons { color: var(--dcs-accent); }
+
+/* floating widgets of other plugins, brought into the family: Achievement Badges' friends button becomes a 48 px glass orb on the 16 px inset */
+#abFriendsBtn {
+    left: 16px !important; bottom: 16px !important; width: 48px !important; height: 48px !important; border-radius: 50% !important; padding: 0 !important; color: var(--dcs-text) !important;
+    background: var(--dcs-glass-strong) !important; border: 1px solid var(--dcs-hairline-strong) !important;
+    -webkit-backdrop-filter: blur(var(--dcs-blur)) saturate(1.5); backdrop-filter: blur(var(--dcs-blur)) saturate(1.5);
+    box-shadow: inset 0 1px 0 oklch(1 0 0 / .07), 0 14px 34px -14px oklch(0 0 0 / .85) !important; transition: transform .3s var(--dcs-ease), background .25s, border-color .25s;
+}
+#abFriendsBtn:hover { background: var(--dcs-a22) !important; border-color: var(--dcs-a55) !important; transform: translateY(-2px); }
+/* ...and steps up above Jellyfin's now-playing bar while that bar is shown (it sat on the bar's cover art) */
+body:has(> .appfooter > .nowPlayingBar:not(.nowPlayingBar-hidden):not(.hide)) #abFriendsBtn { bottom: calc(16px + var(--dcs-npbar-h)) !important; }
+
+/* Jellyfin Enhanced's "Search Settings" (the gear beside "Also available in ..."): the plugin builds it with hard-coded colours in inline styles, so every rule here needs !important. The list under a box is the
+   plugin's own (custom.js opens it on a click, --dcs-fx-pickers); its highlighted row is marked by the plugin with an inline background of #333, which is what the [style*="background: rgb(51, 51, 51)"] rule reads (a bare 51, 51, 51 is also the colour of every row's border). */
+#streaming-settings-modal { background: oklch(.08 .01 255 / .66) !important; -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
+#streaming-settings-modal > div {
+    background: var(--dcs-glass-strong) !important; border: 1px solid var(--dcs-hairline-strong) !important; border-radius: var(--dcs-r-md) !important; padding: 26px 26px 22px !important; color: var(--dcs-text) !important;
+    -webkit-backdrop-filter: blur(28px) saturate(1.6); backdrop-filter: blur(28px) saturate(1.6);
+    box-shadow: inset 0 1px 0 oklch(1 0 0 / .07), 0 30px 80px -20px oklch(0 0 0 / .85) !important;
+}
+@media (min-height: 700px) { #streaming-settings-modal > div { overflow: visible !important; } }          /* the list may hang out over the dimmed page instead of being cut off by the panel (a short window keeps the panel's own scrolling) */
+#streaming-settings-modal h3 { margin: 0 0 20px !important; font: italic 400 1.75rem/1.1 var(--dcs-serif) !important; letter-spacing: 0; color: var(--dcs-text) !important; }
+#streaming-settings-modal label { font-family: var(--dcs-display); font-size: .86rem; font-weight: 600 !important; letter-spacing: .01em; color: var(--dcs-text-dim) !important; }
+#streaming-settings-modal :is(select, input[type="text"]) {
+    background: oklch(1 0 0 / .05) !important; color: var(--dcs-text) !important; border: 1px solid var(--dcs-hairline-strong) !important; border-radius: var(--dcs-r-sm) !important; font: 500 .92rem/1.3 var(--dcs-display) !important;
+    outline: 0; transition: border-color .25s, box-shadow .25s, background .25s;
+}
+#streaming-settings-modal :is(select, input[type="text"]):hover { background: oklch(1 0 0 / .07) !important; }
+#streaming-settings-modal :is(select, input[type="text"]):focus { border-color: var(--dcs-accent) !important; box-shadow: 0 0 0 3px var(--dcs-a22); }
+#streaming-settings-modal input::placeholder { color: var(--dcs-text-mute); }
+#streaming-settings-modal select option { background: var(--dcs-ink-2); color: var(--dcs-text); }
+#streaming-settings-modal #reset-region-btn { color: var(--dcs-text-mute) !important; border-radius: 50% !important; padding: 5px !important; transition: color .2s, background .2s; }
+#streaming-settings-modal #reset-region-btn:hover { color: var(--dcs-accent) !important; background: var(--dcs-a14) !important; }
+#streaming-settings-modal .selected-tag { background: var(--dcs-a22) !important; color: var(--dcs-text) !important; border: 1px solid var(--dcs-a35); padding: 4px 6px 4px 11px !important; font-family: var(--dcs-display); font-weight: 600; letter-spacing: .01em; }
+#streaming-settings-modal .selected-tag > span { display: inline-grid; place-items: center; width: 18px; height: 18px; border-radius: 50%; font-size: 13px !important; line-height: 1; transition: background .2s; }
+#streaming-settings-modal .selected-tag > span:hover { background: oklch(1 0 0 / .18); }
+#streaming-settings-modal div[style*="max-height: 200px"] {
+    margin-top: 6px; background: oklch(.17 .016 255) !important; border: 1px solid var(--dcs-hairline-strong) !important; border-radius: var(--dcs-r-sm) !important; overflow-x: hidden;
+    box-shadow: 0 24px 50px -18px oklch(0 0 0 / .9); scrollbar-width: thin; scrollbar-color: var(--dcs-hairline-strong) transparent;
+}
+#streaming-settings-modal div[style*="cursor: pointer"] { background: transparent !important; color: var(--dcs-text) !important; border-bottom: 1px solid var(--dcs-hairline) !important; font: 500 .9rem/1.3 var(--dcs-display) !important; transition: background .15s; }
+#streaming-settings-modal div[style*="cursor: pointer"]:last-child { border-bottom: 0 !important; }
+#streaming-settings-modal div[style*="cursor: pointer"]:hover, #streaming-settings-modal div[style*="cursor: pointer"][style*="background: rgb(51, 51, 51)"] { background: var(--dcs-a14) !important; }
+#streaming-settings-modal :is(#cancel-settings, #save-settings) { border-radius: var(--dcs-r-pill) !important; padding: 10px 22px !important; font: 600 .9rem/1 var(--dcs-display) !important; transition: transform .3s var(--dcs-ease), box-shadow .3s, background .25s, border-color .25s; }
+#streaming-settings-modal #cancel-settings { background: oklch(1 0 0 / .05) !important; color: var(--dcs-text) !important; border: 1px solid var(--dcs-hairline-strong) !important; }
+#streaming-settings-modal #cancel-settings:hover { background: oklch(1 0 0 / .1) !important; }
+#streaming-settings-modal #save-settings {
+    background: linear-gradient(120deg, var(--dcs-accent-deep), oklch(.50 .12 calc(var(--dcs-h) + 40))) !important; color: var(--dcs-text) !important; border: 1px solid var(--dcs-a55) !important; box-shadow: 0 10px 28px -12px var(--dcs-a55);
+}
+#streaming-settings-modal #save-settings:hover { transform: translateY(-1px); box-shadow: 0 16px 36px -12px var(--dcs-a55); }
+
+/* 10. FORMS AND BUTTONS -------------------------------------------------------- */
+.emby-input, .emby-textarea, .emby-select, .MuiInputBase-root, .MuiFilledInput-root {
+    background: oklch(1 0 0 / .05) !important; border: 1px solid var(--dcs-hairline-strong) !important; border-radius: var(--dcs-r-sm) !important; color: var(--dcs-text);
+    transition: border-color .25s, box-shadow .25s, background .25s;
+}
+.emby-input:hover, .emby-select:hover { background: oklch(1 0 0 / .07) !important; }
+.raised.button-submit, .button-submit, .MuiButton-containedPrimary {
+    background: linear-gradient(120deg, var(--dcs-accent-deep), oklch(.50 .12 calc(var(--dcs-h) + 40))) !important; color: var(--dcs-text) !important;
+    border: 1px solid var(--dcs-a55) !important; border-radius: var(--dcs-r-pill) !important; box-shadow: 0 10px 28px -12px var(--dcs-a55);
+    transition: transform .3s var(--dcs-ease), box-shadow .3s;
+}
+.raised.button-submit:hover, .button-submit:hover, .MuiButton-containedPrimary:hover { transform: translateY(-1px); box-shadow: 0 16px 36px -12px var(--dcs-a55); }
+
+/* 11. LIBRARY, SEARCH, ALPHA PICKER ---------------------------------------------- */
+.alphaPickerButton { color: var(--dcs-text-mute); transition: color .2s, transform .25s var(--dcs-ease); }
+.alphaPickerButton:hover { color: var(--dcs-accent); transform: scale(1.3); }
+.alphaPickerButton-selected, .alphaPickerButton.alphaPickerButton-selected { color: var(--dcs-accent) !important; }
+.MuiButtonGroup-root { border-radius: var(--dcs-r-pill); overflow: hidden; border: 1px solid var(--dcs-hairline); background: var(--dcs-glass); }
+.searchFields, .searchFields .emby-input { border-radius: var(--dcs-r-pill) !important; }
+.searchSuggestionsList a, .searchSuggestion { transition: color .2s, transform .3s var(--dcs-ease); }
+.searchSuggestionsList a:hover, .searchSuggestion:hover { color: var(--dcs-accent); transform: translateX(2px); }
+
+/* a pill that holds only the brand (login page, before the libraries are known) is just the logo, not an empty capsule */
+.MuiAppBar-root > .MuiToolbar-root:not(.MuiToolbar-root ~ *) > .MuiStack-root:not(:has(> :nth-child(2))) { background: none; border-color: transparent; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; }
+/* the login page has no artwork: it paints its own, static, brighter aurora (same tokens, so --dcs-h still retints it) */
+#loginPage {
+    background:
+        radial-gradient(52% 46% at 16% 18%, oklch(.60 .15 var(--dcs-h) / .42), transparent 70%),
+        radial-gradient(46% 44% at 88% 12%, oklch(.56 .17 calc(var(--dcs-h) + 140) / .34), transparent 70%),
+        radial-gradient(56% 46% at 78% 96%, oklch(.58 .13 calc(var(--dcs-h) + 40) / .34), transparent 70%),
+        radial-gradient(40% 40% at 6% 92%, oklch(.54 .15 calc(var(--dcs-h) + 90) / .22), transparent 70%);
+}
+
+/* 12. LOGIN ---------------------------------------------------------------------
+   Aurora behind a glass card (the aurora itself is the #loginPage rule above): the brand lockup on top, the accounts as round portraits,
+   and - with Jellyfin Enhanced's "Profile Picture on Login" - the chosen account's portrait above the password field.
+   Both the account list and that portrait only exist while the accounts are NOT hidden from the login screen (Dashboard > Users > Profile). */
+#loginPage .padded-left.padded-right.padded-bottom-page {
+    background: var(--dcs-glass-strong) !important; border: 1px solid var(--dcs-hairline-strong) !important; border-radius: var(--dcs-r-lg) !important;
+    -webkit-backdrop-filter: blur(30px) saturate(1.6); backdrop-filter: blur(30px) saturate(1.6);
+    box-shadow: inset 0 1px 0 oklch(1 0 0 / .08), 0 40px 100px -30px oklch(0 0 0 / .9), 0 0 90px -30px var(--dcs-a35);
+}
+#loginPage h1, #loginPage h2 { font-family: var(--dcs-serif); font-style: italic; font-weight: 400; }
+/* the brand lockup (brand/: the compose stack and the server name), drawn once here so it is there before any script or image has loaded */
+#loginPage .padded-left.padded-right.padded-bottom-page::before {
+    content: ""; display: block; height: clamp(64px, 10vh, 100px); margin: .3rem auto .4rem;
+    background: var(--dcs-lockup) center / contain no-repeat; filter: drop-shadow(0 8px 26px var(--dcs-a35));
+}
+#loginPage .padded-left.padded-right.padded-bottom-page:has(.manualLoginForm:not(.hide))::before { height: 0; margin: 0; }          /* the portrait is the hero of the password step */
+/* ElegantFin prints "Sign in to continue" with :before on both forms and lifts it 3.5em above the card; the lockup replaces it, so it becomes a quiet line under it */
+#loginPage :is(.visualLoginForm, .manualLoginForm)::before {
+    position: static; top: auto; margin: 0 0 .35rem; font: italic 400 clamp(1.3rem, 3.6vw, 1.7rem)/1.15 var(--dcs-serif); letter-spacing: 0; color: var(--dcs-text-dim); text-align: center;
+}
+#loginPage .visualLoginForm::before { content: "Who\2019 s watching?"; }
+#loginPage .manualLoginForm::before { content: "Welcome back"; }
+/* the accounts: round portraits that light up under the pointer */
+#loginPage #divUsers { display: flex; flex-wrap: wrap; justify-content: center; gap: 1.5rem 1.6rem; padding: .9rem .5rem .4rem; }
+#loginPage #divUsers, #loginPage #divUsers :is(.card, .cardBox, .cardScalable) { overflow: visible !important; contain: none !important; }   /* the ring and its glow reach past the card's box (Jellyfin gives .card paint containment) */
+#loginPage #divUsers .card { flex: 0 0 auto; width: clamp(92px, 27vw, 128px) !important; margin: 0 !important; padding: 0 !important; background: none !important; border: 0 !important; box-shadow: none !important; outline: 0; cursor: pointer; }
+#loginPage #divUsers .cardBox { margin: 0 !important; padding: 0 !important; background: none !important; box-shadow: none !important; }
+#loginPage #divUsers .cardScalable {
+    border-radius: 50% !important; background: none !important; isolation: isolate;
+    box-shadow: 0 0 0 1px var(--dcs-hairline-strong), 0 18px 34px -16px oklch(0 0 0 / .9);
+    transition: transform .45s var(--dcs-ease), box-shadow .35s;
+}
+#loginPage #divUsers .cardScalable::before, #loginPage #divUsers .cardScalable::after { display: none !important; }
+#loginPage #divUsers .cardPadder { background: none !important; }     /* only holds the 1:1 shape; its surface colour was the square behind the circle */
+#loginPage #divUsers :is(.cardContent, .cardImageContainer, .cardImage) { border-radius: 50% !important; overflow: hidden; }
+#loginPage #divUsers .cardImage.defaultCardBackground {
+    background: radial-gradient(120% 120% at 28% 22%, var(--dcs-a35), transparent 62%), var(--dcs-glass-strong) !important;
+}
+#loginPage #divUsers .cardImageIcon { color: var(--dcs-text-dim); font-size: clamp(2.6rem, 9vw, 3.6rem); opacity: .9; }
+#loginPage #divUsers .cardFooter { padding: 0 !important; background: none !important; }
+#loginPage #divUsers .cardText {
+    margin-top: .75rem; padding: 0 !important; text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    font: 600 .92rem/1.2 var(--dcs-display); letter-spacing: -.01em; color: var(--dcs-text-dim); transition: color .25s;
+}
+#loginPage #divUsers .card:is(:hover, :focus-visible) .cardScalable {
+    transform: translateY(-4px) scale(1.05);
+    box-shadow: 0 0 0 2px var(--dcs-accent), 0 0 0 7px var(--dcs-a22), 0 26px 52px -18px var(--dcs-a55);
+}
+#loginPage #divUsers .card:is(:hover, :focus-visible) .cardText { color: var(--dcs-text); }
+#loginPage #divUsers .card:active .cardScalable { transform: translateY(-1px) scale(1.01); }
+/* the chosen account's portrait above the password (Jellyfin Enhanced draws it; it sets its size inline, hence !important) */
+#loginPage #userProfileImageContainer { min-height: 0 !important; margin: 1.5rem 0 .9rem !important; }          /* room above it: "Welcome back" sat on the ring's glow */
+#loginPage #userProfileImageContainer img {
+    width: clamp(96px, 26vw, 124px) !important; height: clamp(96px, 26vw, 124px) !important; margin: 0 auto !important; border-radius: 50%;
+    box-shadow: 0 0 0 2px var(--dcs-accent), 0 0 0 7px var(--dcs-a22), 0 26px 52px -18px var(--dcs-a55);
+    animation: dcs-face-in .5s var(--dcs-ease) both;
+}
+@keyframes dcs-face-in { from { transform: scale(.82); } to { transform: none; } }
+/* With a splash image on (Dashboard > Branding, brand/dist/splash.jpg) the image leads: the page-backdrop scrim and the aurora blobs step back. Without one nothing here applies. */
+body:has(.backdropContainer .backdropImage[style*="Branding/Splashscreen"]) { --dcs-scrim: .06; }
+body:has(.backdropContainer .backdropImage[style*="Branding/Splashscreen"]) #loginPage { background: linear-gradient(oklch(.12 .013 255 / .05), oklch(.10 .013 255 / .30)); }
+body:has(.backdropContainer .backdropImage[style*="Branding/Splashscreen"]) .backgroundContainer::before,
+body:has(.backdropContainer .backdropImage[style*="Branding/Splashscreen"]) .backgroundContainer::after { opacity: .3; }
+@media (prefers-reduced-motion: reduce) { #loginPage #userProfileImageContainer img { animation: none; } #loginPage #divUsers .cardScalable { transition: none; } }
+
+/* 13. RECOMMENDATION CAROUSEL ---------------------------------------------------
+   custom.js turns a home row whose title/class says recommended / because you watched / discover / top 10 / trending
+   (Home Screen Sections plugin) into .dcs-carousel: wide 16:9 tiles built from each item's own backdrop, snap
+   scrolling (native, touch friendly), the centred tile lit and the rest dimmed, glass arrows, an auto-advance
+   progress hairline, and - through the ambient system - the page glow follows the centred tile's artwork. */
+.dcs-carousel { position: relative; margin-top: 1.2rem; }
+.dcs-carousel .emby-scroller {
+    scroll-snap-type: x mandatory; scroll-padding-inline: 3.3%; padding-block: 1.2rem 1.8rem !important;
+    -webkit-mask: linear-gradient(90deg, transparent 0, #000 3.5%, #000 96.5%, transparent 100%); mask: linear-gradient(90deg, transparent 0, #000 3.5%, #000 96.5%, transparent 100%);
+}
+.dcs-carousel .itemsContainer { gap: 1.3rem; padding-inline: 3.3%; }
+.dcs-carousel .card {
+    position: relative; flex: 0 0 auto; width: clamp(290px, 31vw, 500px) !important; scroll-snap-align: center;
+    transform: scale(.92); opacity: .6; filter: saturate(.75);
+    transition: transform .6s var(--dcs-ease), opacity .5s, filter .5s;
+}
+.dcs-carousel .card.dcs-center, .dcs-carousel .card:hover, .dcs-carousel .card:focus-within { transform: none; opacity: 1; filter: none; }
+.dcs-carousel .cardBox { padding-bottom: 0 !important; margin: 0 !important; }
+.dcs-carousel .cardPadder { padding-bottom: 56.25% !important; }
+.dcs-carousel .cardImageContainer { background-size: cover !important; background-position: center 22% !important; }
+.dcs-carousel .card.dcs-has-art .cardImageContainer { background-image: var(--dcs-art) !important; }
+.dcs-carousel .cardImageContainer::after { content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none;
+    background: linear-gradient(0deg, oklch(.10 .012 255 / .94) 0%, oklch(.10 .012 255 / .5) 34%, transparent 66%); }
+.dcs-carousel .cardText { position: absolute; left: 1.2rem; right: 1.2rem; z-index: 7; margin: 0; text-align: left; white-space: normal; pointer-events: none; }
+.dcs-carousel .cardText a { pointer-events: auto; }
+.dcs-carousel .cardText-first { bottom: 2.35rem; font-size: 1.35rem; line-height: 1.15; font-weight: 700; letter-spacing: -.02em; text-shadow: 0 2px 22px oklch(0 0 0 / .9); }
+.dcs-carousel .cardText-secondary { bottom: 1.05rem; font-size: .74rem; letter-spacing: .14em; text-transform: uppercase; color: var(--dcs-text-dim); }
+.dcs-carousel .card:not([class*="discoverCard"])::before {
+    content: attr(data-type); position: absolute; top: .8rem; left: .8rem; z-index: 8; padding: .28em .8em; border-radius: 999px; pointer-events: none;
+    font: 700 .62rem/1.4 var(--dcs-display); letter-spacing: .16em; text-transform: uppercase; color: var(--dcs-accent-ink);
+    background: linear-gradient(120deg, var(--dcs-accent), var(--dcs-accent-2)); box-shadow: 0 6px 18px -6px var(--dcs-a55);
+}
+.dcs-carousel-btn {
+    position: absolute; top: 50%; z-index: 30; width: 46px; height: 46px; margin-top: -16px; border-radius: 50%; padding: 0; cursor: pointer;
+    display: grid; place-items: center; color: var(--dcs-text); border: 1px solid var(--dcs-hairline-strong); background: var(--dcs-glass-strong);
+    -webkit-backdrop-filter: blur(14px) saturate(1.5); backdrop-filter: blur(14px) saturate(1.5); box-shadow: 0 12px 30px -10px oklch(0 0 0 / .8);
+    opacity: 0; transform: scale(.88); transition: opacity .3s, transform .35s var(--dcs-ease), background .2s, color .2s;
+}
+.dcs-prev { left: 1.2%; } .dcs-prev svg { transform: scaleX(-1); } .dcs-next { right: 1.2%; }
+.dcs-carousel:hover .dcs-carousel-btn, .dcs-carousel:focus-within .dcs-carousel-btn { opacity: 1; transform: none; }
+.dcs-carousel-btn:hover { background: var(--dcs-accent); color: var(--dcs-accent-ink); }
+.dcs-carousel-progress { position: absolute; left: 50%; bottom: 4px; width: 96px; height: 4px; margin-left: -48px; border-radius: 4px; background: oklch(1 0 0 / .10); overflow: hidden; opacity: 0; transition: opacity .4s; pointer-events: none; }
+.dcs-carousel.dcs-playing .dcs-carousel-progress { opacity: 1; }
+.dcs-carousel-progress i { display: block; height: 100%; transform-origin: left; transform: scaleX(0); background: linear-gradient(90deg, var(--dcs-accent-2), var(--dcs-accent)); animation: dcs-fill 6.5s linear forwards; }
+@keyframes dcs-fill { to { transform: scaleX(1); } }
+@media (hover: none), (pointer: coarse) { .dcs-carousel-btn { display: none; } .dcs-carousel .card { width: 78vw !important; } }
+
+/* page transition (custom.js adds html.dcs-routing for 0.7 s on a route change): opacity only, so fixed children never jump */
+html.dcs-routing .mainAnimatedPages > .page:not(.hide) { animation: dcs-page-in .55s var(--dcs-ease) both; }
+@keyframes dcs-page-in { from { opacity: 0; } to { opacity: 1; } }
+
+/* 14. GUARDS: PLAYER, MOTION, TOUCH, TV ---------------------------------------------- */
+html.dcs-video .cardScalable::before, html.dcs-video .cardScalable::after { display: none; }
+/* menus and dialogs opened over the video keep their colours but drop the blur (no filters over playing video) */
+html.dcs-video :is(.MuiPopover-paper, .MuiMenu-paper, .MuiDialog-paper, .MuiTooltip-tooltip, .MuiSnackbarContent-root, .dialog, .formDialog, .actionSheet, .toast, .dialogBackdrop, .MuiBackdrop-root),
+body:has(#videoOsdPage:not(.hide)) :is(.MuiPopover-paper, .MuiMenu-paper, .MuiDialog-paper, .MuiTooltip-tooltip, .MuiSnackbarContent-root, .dialog, .formDialog, .actionSheet, .toast, .dialogBackdrop, .MuiBackdrop-root) { -webkit-backdrop-filter: none; backdrop-filter: none; }
+@media (hover: none), (pointer: coarse) {
+    .card-hoverable:hover .cardScalable { transform: none; box-shadow: inset 0 1px 0 oklch(1 0 0 / .05), 0 14px 30px -20px oklch(0 0 0 / .95); }
+    .cardScalable::before, .cardScalable::after { display: none; }
+    #slides-container .play-button::after { animation: none; display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+    #slides-container::before, #slides-container::after { transition: none !important; }
+    #slides-container .slide .backdrop.with-video, #slides-container .slide .slide-content { transition: opacity .2s linear !important; translate: none !important; }
+    #slides-container .slide .video-container { transition: opacity .5s ease-in-out !important; }
+    .backgroundContainer::before, .backgroundContainer::after, #slides-container, #slides-container .play-button::after, .dcs-greeting, #dcs-hero-skel::after { animation: none !important; }
+    .cardScalable, .MuiAppBar-root, html.dcs-nav-ready .MuiAppBar-root > .MuiToolbar-root:not(.MuiToolbar-root ~ *) > .MuiStack-root::before { transition: none !important; }
+    .card-hoverable:hover .cardScalable { transform: none !important; }
+    :root { transition: none; }
+}
+html.dcs-no-motion .backgroundContainer::before, html.dcs-no-motion .backgroundContainer::after, html.dcs-no-motion #slides-container, html.dcs-no-motion #slides-container .play-button::after { animation: none !important; }
+@media (max-width: 600px) {
+    :root { --dcs-blur: 16px; }
+    #slides-container .spec-line { letter-spacing: .02em; font-size: 11px; }
+    #slides-container#slides-container .spec-critics { display: none !important; }
+    #slides-container .spec-item, #slides-container .spec-cert { white-space: nowrap; }
+    /* the genres yield (with "...") instead of being cut mid-word, and the rating badge keeps its width */
+    #slides-container#slides-container :is(.spec-item, .spec-cert) { flex-shrink: 0 !important; }
+    #slides-container#slides-container .spec-item.spec-genre { display: block !important; flex-shrink: 1 !important; min-width: 0 !important; overflow: hidden; text-overflow: ellipsis; }
+    .dcs-greeting { padding-top: .6rem; }
+    .MuiAppBar-root > .MuiToolbar-root:not(.MuiToolbar-root ~ *) > .MuiStack-root { max-width: calc(100vw - 24px); }
+}
+.layout-tv .backgroundContainer::before, .layout-tv .backgroundContainer::after { animation: none; }
+.layout-tv .cardScalable::before, .layout-tv .cardScalable::after { display: none; }
+
+/* 15. SIGNATURE: ON AIR, SCROLL THREAD, FILM GATE ---------------------------------
+   Three touches of Aurora Glass's own. Each has a switch in section 1 (pure CSS: custom.js mirrors a 0 into html.dcs-off-<name>) and costs nothing while nothing happens.
+   ON AIR     while this browser plays something in the now-playing bar (music, or a video sent to the background) the avatar's ring turns aurora and breathes;
+              it holds still while paused and is gone when playback stops. The bar itself becomes Aurora glass.
+   THREAD     a 2 px aurora thread along the top of the window fills as the page scrolls: a CSS scroll timeline, so no script and no listener (a browser without
+              scroll timelines simply shows none).
+   FILM GATE  arriving on a details page, the backdrop opens like a projector gate: two black bands draw back in .6 s, started by custom.js (html.dcs-gate) when the
+              page's new backdrop image is in. It rides the page transition, so it never runs with reduced motion or with --dcs-fx-transition: 0. */
+.appfooter > .nowPlayingBar {
+    background: var(--dcs-glass-strong) !important; border-top: 1px solid var(--dcs-hairline) !important; box-shadow: 0 -18px 40px -24px oklch(0 0 0 / .9);
+    -webkit-backdrop-filter: blur(var(--dcs-blur)) saturate(1.4); backdrop-filter: blur(var(--dcs-blur)) saturate(1.4);
+}
+.appfooter > .nowPlayingBar .nowPlayingImage { border-radius: var(--dcs-r-xs); overflow: hidden; }
+html:not(.dcs-off-onair) body:has(> .appfooter > .nowPlayingBar:not(.nowPlayingBar-hidden):not(.hide)) .MuiAppBar-root .MuiIconButton-root:has(.MuiAvatar-root)::after {
+    inset: -3px; border: 2px solid var(--dcs-accent); box-shadow: 0 0 14px 1px var(--dcs-a55), inset 0 0 0 1px oklch(0 0 0 / .45); opacity: .7;
+}
+html:not(.dcs-off-onair) body:has(> .appfooter > .nowPlayingBar:not(.nowPlayingBar-hidden):not(.hide) .playPauseButton > .pause) .MuiAppBar-root .MuiIconButton-root:has(.MuiAvatar-root)::after {
+    animation: dcs-onair 2.4s var(--dcs-ease-io) infinite alternate;
+}
+@keyframes dcs-onair { from { opacity: .4; } to { opacity: 1; } }
+@supports (animation-timeline: scroll()) {
+    html:not(.dcs-off-thread):not(.dcs-video):not([data-dcs-route="login"]) body::after {
+        content: ""; position: fixed; inset: 0 0 auto; height: 2px; z-index: 1101; pointer-events: none;
+        background: linear-gradient(90deg, var(--dcs-accent), var(--dcs-accent-2) 60%, var(--dcs-accent-3)); box-shadow: 0 0 10px var(--dcs-a55);
+        transform-origin: 0 50%; transform: scaleX(0);
+        animation: dcs-thread linear both; animation-timeline: scroll(root block);
+    }
+}
+@keyframes dcs-thread { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+html.dcs-gate:not(.dcs-off-gate)[data-dcs-route="details"] :is(.backdropContainer:has(.displayingBackdropImage), #dcs-bd, #itemDetailPage:not(.hide) #itemBackdrop) { animation: dcs-gate .6s var(--dcs-ease) both; }
+@keyframes dcs-gate { from { clip-path: inset(14% 0 14% 0); } to { clip-path: inset(0); } }
+@media (prefers-reduced-motion: reduce) { body .MuiAppBar-root .MuiIconButton-root:has(.MuiAvatar-root)::after { animation: none !important; } }
+html.dcs-no-motion body .MuiAppBar-root .MuiIconButton-root:has(.MuiAvatar-root)::after { animation: none !important; }
+
+/* Jellyfin Enhanced's watch progress chip with an unknown total ("0m / 0m"): hidden until custom.js fills it from the item (wpFix) */
+.mediaInfoItem-watchProgress.dcs-hide { display: none !important; }
+
+/* the theme's own details backdrop (custom.js bdSync): where Jellyfin's page backdrop sits, under the page's dark gradient (ElegantFin's .withBackdrop look) */
+#dcs-bd { position: fixed; inset: 0; z-index: -1; background: center / cover no-repeat; pointer-events: none; animation: dcs-bd-in .8s ease both; }
+html.dcs-bd .backgroundContainer { background: linear-gradient(0deg, var(--dcs-ink-0), 45%, oklch(.22 .03 260 / .25)); opacity: .9; }
+@keyframes dcs-bd-in { from { opacity: 0; } to { opacity: 1; } }
+
+/* aurora-glass:end */
+
+/* page-backgrounds:start (managed by ~/.local/bin/jellyfin-page-backgrounds) */
+body:not(:has(#indexPage:not(.hide) #homeTab.is-active)):not(:has(.videoPlayerContainer)) .backgroundContainer {
+  background: #101010 center / cover no-repeat; background-image: url("/web/backgrounds/adventure-time-sunset-view.jpg"); background-image: image-set(url("/web/backgrounds/adventure-time-sunset-view.avif") type("image/avif"), url("/web/backgrounds/adventure-time-sunset-view.jpg") type("image/jpeg"));
+  animation: pageBackgrounds 320s linear infinite;
+}
+body:not(:has(#indexPage:not(.hide) #homeTab.is-active)):not(:has(.videoPlayerContainer)) .backgroundContainer::after {
+  content: ""; position: absolute; inset: 0;
+  background: linear-gradient(180deg, rgba(10,10,14,.72) 0%, rgba(10,10,14,.80) 55%, rgba(10,10,14,.90) 100%);
+}
+@keyframes pageBackgrounds {
+  0.000%, 11.250% { background-image: url("/web/backgrounds/adventure-time-sunset-view.jpg"); background-image: image-set(url("/web/backgrounds/adventure-time-sunset-view.avif") type("image/avif"), url("/web/backgrounds/adventure-time-sunset-view.jpg") type("image/jpeg")); }
+  12.500%, 23.750% { background-image: url("/web/backgrounds/adventure-time-tree-house.jpg"); background-image: image-set(url("/web/backgrounds/adventure-time-tree-house.avif") type("image/avif"), url("/web/backgrounds/adventure-time-tree-house.jpg") type("image/jpeg")); }
+  25.000%, 36.250% { background-image: url("/web/backgrounds/ancient-temple-in-the-rain.jpg"); background-image: image-set(url("/web/backgrounds/ancient-temple-in-the-rain.avif") type("image/avif"), url("/web/backgrounds/ancient-temple-in-the-rain.jpg") type("image/jpeg")); }
+  37.500%, 48.750% { background-image: url("/web/backgrounds/ancient-village-sunset-lanterns.jpg"); background-image: image-set(url("/web/backgrounds/ancient-village-sunset-lanterns.avif") type("image/avif"), url("/web/backgrounds/ancient-village-sunset-lanterns.jpg") type("image/jpeg")); }
+  50.000%, 61.250% { background-image: url("/web/backgrounds/cherry-blossom.jpg"); background-image: image-set(url("/web/backgrounds/cherry-blossom.avif") type("image/avif"), url("/web/backgrounds/cherry-blossom.jpg") type("image/jpeg")); }
+  62.500%, 73.750% { background-image: url("/web/backgrounds/majestic-sakura-tree.jpg"); background-image: image-set(url("/web/backgrounds/majestic-sakura-tree.avif") type("image/avif"), url("/web/backgrounds/majestic-sakura-tree.jpg") type("image/jpeg")); }
+  75.000%, 86.250% { background-image: url("/web/backgrounds/moonlight-cherry-blossom.jpg"); background-image: image-set(url("/web/backgrounds/moonlight-cherry-blossom.avif") type("image/avif"), url("/web/backgrounds/moonlight-cherry-blossom.jpg") type("image/jpeg")); }
+  87.500%, 98.750% { background-image: url("/web/backgrounds/purple-tree-fantasy-world.jpg"); background-image: image-set(url("/web/backgrounds/purple-tree-fantasy-world.avif") type("image/avif"), url("/web/backgrounds/purple-tree-fantasy-world.jpg") type("image/jpeg")); }
+  100% { background-image: url("/web/backgrounds/adventure-time-sunset-view.jpg"); background-image: image-set(url("/web/backgrounds/adventure-time-sunset-view.avif") type("image/avif"), url("/web/backgrounds/adventure-time-sunset-view.jpg") type("image/jpeg")); }
+}
+@media (prefers-reduced-motion: reduce) {
+  body:not(:has(#indexPage:not(.hide) #homeTab.is-active)):not(:has(.videoPlayerContainer)) .backgroundContainer { animation: none; background-image: url("/web/backgrounds/adventure-time-sunset-view.jpg"); }
+}
+/* page-backgrounds:end */
+
+
+
+
+
+/* detail-ribbon:start */
+/* Detail pages: no grey title ribbon or solid #101010 slab, so the item backdrop fades into the wallpaper. */
+.detailRibbon, .noBackdropTransparency .detailPageWrapperContainer {
+  background: transparent !important; box-shadow: none !important;
+}
+.itemBackdrop {
+  -webkit-mask-image: linear-gradient(180deg, #000 55%, transparent 100%);
+  mask-image: linear-gradient(180deg, #000 55%, transparent 100%);
+}
+.detailRibbon .itemName, .detailRibbon .itemMiscInfo, .detailRibbon .detailButton {
+  text-shadow: 0 1px 6px rgba(0,0,0,.75);
+}
+/* detail-ribbon:end */
+
+/* placeholder-cards:start */
+/* Cards with no artwork (Live TV programs etc.): dark frosted glass instead of Jellyfin's bright blue tiles. */
+:is(.defaultCardBackground1, .defaultCardBackground2, .defaultCardBackground3, .defaultCardBackground4, .defaultCardBackground5) {
+  background-color: rgba(20,20,26,.55) !important;
+  background-image: linear-gradient(160deg, rgba(255,255,255,.08), rgba(255,255,255,0) 60%) !important;
+  -webkit-backdrop-filter: blur(10px) saturate(1.2); backdrop-filter: blur(10px) saturate(1.2);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.08);
+  border-radius: 6px;
+}
+:is(.defaultCardBackground1, .defaultCardBackground2, .defaultCardBackground3, .defaultCardBackground4, .defaultCardBackground5) .cardImageIcon {
+  color: rgba(255,255,255,.35);
+}
+/* placeholder-cards:end */
+
+/* poster-effects:start */
+/* Poster glow under Aurora Glass's tilt.
+   - Glow: a blurred copy of the card's own image behind it on hover, in the image's colors. Works where Jellyfin
+     draws the image as a background (home rows, Live TV, cast...). The newer library grids draw an <img>, which
+     CSS can't copy; there Aurora's accent glow is what shows.
+   - Tilt: Aurora's own (perspective/rotate from --tx/--ty). Its custom.js, which sets them from the cursor,
+     isn't loaded (no JS plugin installed), so a fixed lean is set here, alternating between neighbours.
+     If custom.js ever runs, its inline values win and the tilt follows the cursor.
+   Jellyfin/ElegantFin clip cards (.card contain, image contain: strict + overflow: hidden, .cardScalable
+   overflow: hidden, all !important in ElegantFin) and zoom the image with a transform, which would put the glow
+   in front of it; all of that is lifted only on the hovered card. Off with "reduce motion"; the detail-page
+   poster is left alone (not in an .itemsContainer). */
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .itemsContainer .card .cardImageContainer::before {
+    content: ""; position: absolute; inset: 2%; z-index: -1; border-radius: inherit;
+    background-image: inherit; background-size: cover; background-position: center;
+    filter: blur(18px) saturate(1.8) brightness(1.15); opacity: 0; transition: opacity .35s ease; pointer-events: none;
+  }
+  .itemsContainer .card:is(:hover, :focus-within) { position: relative; z-index: 2; contain: none !important; --tx: -1; --ty: .8; }
+  .itemsContainer .card:nth-child(even):is(:hover, :focus-within) { --tx: 1; }
+  /* wide cards (library tiles, episodes) lean less: a 400 px card's near edge would grow into the next one */
+  .itemsContainer .card[class*="ackdropCard"]:is(:hover, :focus-within) { --tx: -.35; --ty: .5; }
+  .itemsContainer .card[class*="ackdropCard"]:nth-child(even):is(:hover, :focus-within) { --tx: .35; }
+  /* Cards sit ~19 px apart. Everything the hovered card paints (this glow, Aurora's 46 px accent shadow and rim)
+     stops at its sides, so nothing lies over the neighbours; above and below it can spread. */
+  .itemsContainer .card:is(:hover, :focus-within) .cardScalable {
+    overflow: visible !important; clip-path: inset(-30px 0 round var(--dcs-r-md, .2em));
+  }
+  .itemsContainer .card:is(:hover, :focus-within) .cardImageContainer {
+    contain: none !important; overflow: visible !important; transform: none !important; border-radius: var(--dcs-r-md, .2em);
+  }
+  .itemsContainer .card:is(:hover, :focus-within) .cardImageContainer::before { opacity: 1; }
+}
+/* poster-effects:end */
+
+/* header-clear:start */
+/* No bar behind the header: once the page scrolls, Jellyfin fills its header (.MuiAppBar-root; .skinHeader-withBackground
+   on older pages) with solid #202020 plus a gradient across the full width, and ElegantFin adds a 72 px frosted band
+   (a backdrop blur on the header's ::after). The nav pill and the round buttons carry their own glass, so the bar
+   behind them is removed entirely. */
+.MuiAppBar-root, .skinHeader-withBackground {
+  background: transparent !important; background-image: none !important; box-shadow: none !important;
+}
+.MuiAppBar-root::before, .MuiAppBar-root::after { content: none !important; display: none !important; }
+/* Aurora's "scroll thread": a 2 px aurora line along the top of the window (body::after) that fills as the page
+   scrolls. Its --dcs-fx-thread switch only works through custom.js, which isn't loaded, so it is hidden here. */
+body::after { content: none !important; display: none !important; animation: none !important; }
+/* header-clear:end */
+
+/* loading-animation:start */
+/* Loading animation: a futuristic "reactor". Replaces Jellyfin's Material spinner (.mdl-spinner / .docspinner, used on page
+   loads and the splash) and the MUI CircularProgress with three counter-rotating neon rings, orbiting sparks and a pulsing,
+   glitching core, all tinted by the accent hue (--dcs-h). Pure CSS. */
+@property --ld-a { syntax: "<angle>"; inherits: false; initial-value: 0deg; }
+@keyframes ld-spin    { to { --ld-a: 360deg; } }
+@keyframes ld-core    { 0%, 100% { transform: scale(.55); opacity: .75; filter: hue-rotate(0deg); }
+                        50% { transform: scale(1); opacity: 1; filter: hue-rotate(70deg); } }
+@keyframes ld-glitch  { 0%, 86%, 100% { transform: translate(0, 0); clip-path: none; }
+                        88% { transform: translate(-6%, 2%); clip-path: inset(10% 0 55% 0); }
+                        91% { transform: translate(7%, -3%); clip-path: inset(55% 0 10% 0); }
+                        94% { transform: translate(-3%, 0); clip-path: inset(30% 0 30% 0); } }
+@keyframes ld-orbit   { to { transform: rotate(360deg); } }
+@keyframes ld-scan    { 0% { transform: translateY(-120%); } 100% { transform: translateY(120%); } }
+
+.mdl-spinner, .docspinner, .MuiCircularProgress-root {
+  --ld-1: oklch(.82 .19 var(--dcs-h, 200));
+  --ld-2: oklch(.74 .26 calc(var(--dcs-h, 200) + 140));
+  --ld-3: oklch(.80 .22 calc(var(--dcs-h, 200) + 255));
+  position: relative;
+  width: 5.2em !important; height: 5.2em !important; font-size: 16px;
+  border: 0 !important; background: none !important; animation: ld-glitch 3.4s steps(1, end) infinite !important;
+  color: transparent !important; vertical-align: middle;
+}
+/* Jellyfin shows the page spinner only while it carries .mdlSpinnerActive: keep it hidden otherwise, fixed and centred as stock */
+.docspinner { position: fixed !important; left: 50%; top: 50%; margin: -2.6em 0 0 -2.6em !important; }
+.docspinner:not(.mdlSpinnerActive) { display: none !important; }
+/* the original Material layers / SVG are replaced */
+.mdl-spinner .mdl-spinner__layer, .MuiCircularProgress-root svg { display: none !important; }
+
+/* outer + middle rings: conic gradients cut into thin rings with a mask, spinning in opposite directions */
+.mdl-spinner::before, .docspinner::before, .MuiCircularProgress-root::before {
+  content: ""; position: absolute; inset: 0; border-radius: 50%;
+  background: conic-gradient(from var(--ld-a), transparent 0 8%, var(--ld-1) 20%, transparent 34% 52%, var(--ld-2) 66%, transparent 80%);
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 4px), #000 calc(100% - 3px));
+          mask: radial-gradient(farthest-side, transparent calc(100% - 4px), #000 calc(100% - 3px));
+  filter: drop-shadow(0 0 6px var(--ld-1)) drop-shadow(0 0 14px var(--ld-2));
+  animation: ld-spin 1.7s linear infinite;
+}
+.mdl-spinner::after, .docspinner::after, .MuiCircularProgress-root::after {
+  content: ""; position: absolute; inset: 14%; border-radius: 50%;
+  background: conic-gradient(from calc(360deg - var(--ld-a)), var(--ld-3) 0 12%, transparent 12% 30%, var(--ld-1) 30% 42%, transparent 42% 70%, var(--ld-2) 70% 78%, transparent 78%);
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 7px), #000 calc(100% - 6px), #000 calc(100% - 2px), transparent calc(100% - 1px));
+          mask: radial-gradient(farthest-side, transparent calc(100% - 7px), #000 calc(100% - 6px), #000 calc(100% - 2px), transparent calc(100% - 1px));
+  filter: drop-shadow(0 0 5px var(--ld-3));
+  animation: ld-spin 1.1s linear infinite reverse;
+}
+/* the core, plus two orbiting sparks, live in the container's own box via layered backgrounds on the first layer's host */
+.mdl-spinner > .mdl-spinner__layer:first-child, .docspinner > .mdl-spinner__layer:first-child { display: block !important; position: absolute; inset: 0; opacity: 1 !important; border: 0 !important; animation: none !important; }
+.mdl-spinner > .mdl-spinner__layer:first-child *, .docspinner > .mdl-spinner__layer:first-child * { display: none !important; }
+.mdl-spinner > .mdl-spinner__layer:first-child::before, .docspinner > .mdl-spinner__layer:first-child::before {
+  content: ""; position: absolute; inset: 36%; border-radius: 50%;
+  background: radial-gradient(circle, #fff 0 18%, var(--ld-1) 38%, var(--ld-2) 66%, transparent 72%);
+  box-shadow: 0 0 18px var(--ld-1), 0 0 38px var(--ld-2);
+  animation: ld-core 1.2s ease-in-out infinite;
+}
+.mdl-spinner > .mdl-spinner__layer:first-child::after, .docspinner > .mdl-spinner__layer:first-child::after {
+  content: ""; position: absolute; inset: -8%; border-radius: 50%;
+  background: radial-gradient(circle at 50% 0, #fff 0 2px, var(--ld-1) 3px, transparent 7px),
+              radial-gradient(circle at 50% 100%, #fff 0 2px, var(--ld-3) 3px, transparent 7px);
+  filter: drop-shadow(0 0 4px var(--ld-1));
+  animation: ld-orbit 2.4s cubic-bezier(.6, 0, .4, 1) infinite;
+}
+/* scan line sweeping over the whole thing */
+.mdl-spinner, .docspinner { overflow: visible; }
+.mdl-spinner > .mdl-spinner__layer:first-child { overflow: hidden; border-radius: 50%; }
+.mdl-spinner > .mdl-spinner__layer:first-child > .mdl-spinner__circle-clipper:first-child { display: block !important; position: absolute; left: 0; right: 0; height: 18%; top: 41%;
+  background: linear-gradient(transparent, oklch(.9 .1 var(--dcs-h, 200) / .35), transparent); animation: ld-scan 1.4s ease-in-out infinite alternate; }
+
+@media (prefers-reduced-motion: reduce) {
+  .mdl-spinner, .docspinner, .MuiCircularProgress-root,
+  .mdl-spinner *, .docspinner *, .mdl-spinner::before, .mdl-spinner::after, .MuiCircularProgress-root::before, .MuiCircularProgress-root::after { animation-duration: 6s !important; }
+}
+/* loading-animation:end */
+
+/* home-backdrop:start (managed by ~/.local/bin/jellyfin-home-backdrop) */
+body:has(#indexPage:not(.hide) #homeTab.is-active) .backgroundContainer {
+  background-color: #101010;
+  background-image: url("/Items/5b8f3adb66f7bd613515cbaf8048cd87/Images/Backdrop/0?maxWidth=1920&quality=75&tag=942786b00b4fb80b2b2ded348332d317");
+  background-size: cover;
+  background-position: center 25%;
+  animation: homeBackdrop 96s linear infinite, homeBackdropZoom 40s ease-in-out infinite alternate;
+}
+body:has(#indexPage:not(.hide) #homeTab.is-active) .backgroundContainer::after {
+  content: ""; position: absolute; inset: 0;
+  background: linear-gradient(180deg, rgba(16,16,16,.55) 0%, rgba(16,16,16,.72) 45%, #101010 100%),
+              radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,.45) 100%);
+}
+body:has(#indexPage:not(.hide) #homeTab.is-active) .backgroundContainer::before {
+  content: url("/Items/a73983b40f472e38bee895f3409f1a4a/Images/Backdrop/0?maxWidth=1920&quality=75&tag=ed79d4bb6d0b03be6565504bfe0d4494") url("/Items/07b7caf40337ec85e88aaf5728bb3135/Images/Backdrop/0?maxWidth=1920&quality=75&tag=4d4bf3363a187634405d8c65ca8c669f") url("/Items/7de1ad805e0eaded30ab8af66c040d91/Images/Backdrop/0?maxWidth=1920&quality=75&tag=921a224bfa1c144e86cd8293b5da2abf") url("/Items/13d0d9d5c9c802868c7595242b98d56e/Images/Backdrop/0?maxWidth=1920&quality=75&tag=4c7ee16f322bf92d7ef7d803b38e14a3") url("/Items/5f9ae31c678051a4cb8410a6236f5bfe/Images/Backdrop/0?maxWidth=1920&quality=75&tag=416f2d511d937d195f80ee14f59dca9c") url("/Items/88280007d88cb4d6066b373bfe311f76/Images/Backdrop/0?maxWidth=1920&quality=75&tag=c65613367c2fb459a2a073adc9b5427b") url("/Items/aa91040036276c64a7c80bd96112b766/Images/Backdrop/0?maxWidth=1920&quality=75&tag=4df3e9b03ecf241306ac82e613efa50a");
+  position: absolute; width: 1px; height: 1px; overflow: hidden; opacity: .01;
+}
+@keyframes homeBackdrop {
+  0.00%, 10.00% { background-image: url("/Items/5b8f3adb66f7bd613515cbaf8048cd87/Images/Backdrop/0?maxWidth=1920&quality=75&tag=942786b00b4fb80b2b2ded348332d317"); }
+  12.50%, 22.50% { background-image: url("/Items/a73983b40f472e38bee895f3409f1a4a/Images/Backdrop/0?maxWidth=1920&quality=75&tag=ed79d4bb6d0b03be6565504bfe0d4494"); }
+  25.00%, 35.00% { background-image: url("/Items/07b7caf40337ec85e88aaf5728bb3135/Images/Backdrop/0?maxWidth=1920&quality=75&tag=4d4bf3363a187634405d8c65ca8c669f"); }
+  37.50%, 47.50% { background-image: url("/Items/7de1ad805e0eaded30ab8af66c040d91/Images/Backdrop/0?maxWidth=1920&quality=75&tag=921a224bfa1c144e86cd8293b5da2abf"); }
+  50.00%, 60.00% { background-image: url("/Items/13d0d9d5c9c802868c7595242b98d56e/Images/Backdrop/0?maxWidth=1920&quality=75&tag=4c7ee16f322bf92d7ef7d803b38e14a3"); }
+  62.50%, 72.50% { background-image: url("/Items/5f9ae31c678051a4cb8410a6236f5bfe/Images/Backdrop/0?maxWidth=1920&quality=75&tag=416f2d511d937d195f80ee14f59dca9c"); }
+  75.00%, 85.00% { background-image: url("/Items/88280007d88cb4d6066b373bfe311f76/Images/Backdrop/0?maxWidth=1920&quality=75&tag=c65613367c2fb459a2a073adc9b5427b"); }
+  87.50%, 97.50% { background-image: url("/Items/aa91040036276c64a7c80bd96112b766/Images/Backdrop/0?maxWidth=1920&quality=75&tag=4df3e9b03ecf241306ac82e613efa50a"); }
+  100% { background-image: url("/Items/5b8f3adb66f7bd613515cbaf8048cd87/Images/Backdrop/0?maxWidth=1920&quality=75&tag=942786b00b4fb80b2b2ded348332d317"); }
+}
+@keyframes homeBackdropZoom { from { transform: scale(1); } to { transform: scale(1.08); } }
+@media (prefers-reduced-motion: reduce) {
+  body:has(#indexPage:not(.hide) #homeTab.is-active) .backgroundContainer { animation: none; }
+}
+/* home-backdrop:end */

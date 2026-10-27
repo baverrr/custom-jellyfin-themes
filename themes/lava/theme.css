@@ -1,0 +1,133 @@
+/* LAVA LAMP (from Homepage's lava.css) — inside a 1970s lava lamp: molten wax blobs rising and drifting behind the
+   page, glass-cylinder reflections, rounded smoked-glass cards that glow like hot wax when pointed at.
+   (Homepage's metaballs are a canvas; here they are blurred CSS blobs.) */
+@import url("../../dark/theme.css");
+@import url("../_base.css");
+@import url("../loader-base.css"); /* this theme draws its own loading animation */
+@import url("../player-base.css"); /* themed video player controls */
+@import url("../forms-base.css"); /* themed settings forms, search page and menus */
+@import url("../extras-base.css"); /* themed badges, progress bars, cast row, Live TV Guide and scrollbars */
+@import url("tiles/tiles.css"); /* My Media tiles, from ~/media-stack/jellyfin/library-covers/tiles */
+
+html:root:root {
+  --hp-accent: #ffb347; --hp-accent-2: #ff3d7f; --hp-accent-3: #ffd25e; --hp-on-accent: #2a0712;
+  --hp-bg: radial-gradient(ellipse at 50% 115%, #6a0f22, transparent 62%), linear-gradient(180deg, #24060f, #120308 60%, #0a0205) fixed;
+  --dcs-ink-0: #120308; --dcs-ink-1: #1c050c; --dcs-ink-2: #2a0712; --dcs-ink-3: #3c0a18;
+  --dcs-glass: rgb(30 6 12 / .74); --dcs-glass-strong: rgb(24 5 10 / .95);
+  --dcs-hairline: rgb(255 140 80 / .22); --dcs-hairline-strong: rgb(255 140 80 / .5);
+  --dcs-text: #fff1e6; --dcs-text-dim: #ffd6c2; --dcs-text-mute: #e6a690;
+  --dcs-r-xs: 12px; --dcs-r-sm: 16px; --dcs-r-md: 26px; --dcs-r-lg: 32px;
+  --hp-card-border: 1px solid rgb(255 140 80 / .22);
+  --hp-card-shadow: 0 12px 34px rgb(0 0 0 / .35);
+  --hp-card-hover-border: #ff8a3d;
+  --hp-card-hover-shadow: 0 0 0 1px #ff8a3d, 0 0 40px -4px #ff6a3d, 0 0 90px -20px #ff3d7f;
+  --hp-title-style: italic;
+}
+html:root :is(.sectionTitle, .sectionTitle a, .sectionTitle-cards) {
+  font-weight: 800 !important; background: linear-gradient(90deg, #ffd25e, #ff6a3d); -webkit-background-clip: text; background-clip: text; color: transparent !important;
+}
+
+/* wax blobs: big blurred radial blobs drifting up and down at different speeds */
+html:root::before {
+  content: ""; position: fixed; inset: -20vh -10vw; z-index: -1; filter: blur(38px) saturate(1.2);
+  background:
+    radial-gradient(circle at 22% 70%, #ff3d7f 0 9vmax, transparent 13vmax),
+    radial-gradient(circle at 70% 30%, #ff8a3d 0 7vmax, transparent 11vmax),
+    radial-gradient(circle at 48% 95%, #ffb347 0 11vmax, transparent 16vmax);
+  opacity: .55; animation: hp-rise 26s ease-in-out infinite alternate;
+}
+html:root body::before {
+  content: ""; position: fixed; inset: -20vh -10vw; z-index: -1; filter: blur(42px); pointer-events: none;
+  background: radial-gradient(circle at 80% 85%, #ff3d7f 0 8vmax, transparent 12vmax), radial-gradient(circle at 12% 20%, #ffd25e 0 5vmax, transparent 9vmax);
+  opacity: .45; animation: hp-rise2 34s ease-in-out infinite alternate;
+}
+/* glass-cylinder reflections */
+html:root::after {
+  content: ""; position: fixed; inset: 0; z-index: -1;
+  background: linear-gradient(90deg, transparent 5vw, rgb(255 255 255 / .06) 7vw, rgb(255 255 255 / .02) 11vw, transparent 13vw),
+              linear-gradient(90deg, transparent 88vw, rgb(255 255 255 / .035) 91vw, transparent 93vw);
+}
+@keyframes hp-rise { from { transform: translateY(18vh); } to { transform: translateY(-18vh); } }
+@keyframes hp-rise2 { from { transform: translate(4vw, -14vh); } to { transform: translate(-4vw, 16vh); } }
+
+/* loading animation: a tiny lava lamp — a smoked-glass capsule with three wax blobs rising and sinking at their own
+   pace, a dark metal cap and base, and a warm glow (slots: loader-base.css) */
+html:root :is(.mdl-spinner, .docspinner, .MuiCircularProgress-root)::before {
+  inset: 6% 28%; border-radius: 46% / 24%;
+  background: radial-gradient(closest-side, #ffd25e 0 40%, #ff8a3d 70%, transparent) 50% 160% / 100% 40% no-repeat,
+              radial-gradient(closest-side, #ff8a3d 0 40%, #ff3d7f 72%, transparent) 30% -40% / 85% 32% no-repeat,
+              radial-gradient(closest-side, #ffb347 0 40%, #ff6a3d 72%, transparent) 70% 100% / 62% 24% no-repeat,
+              linear-gradient(90deg, transparent 15%, rgb(255 255 255 / .12) 25%, transparent 40%),
+              radial-gradient(ellipse at 50% 100%, #8a1530, #3c0a18 55%, #1c050c);
+  box-shadow: inset 0 0 0 1px rgb(255 140 80 / .35), 0 0 22px rgb(255 106 61 / .45), 0 0 46px -8px rgb(255 61 127 / .5);
+  animation: lv-ld-wax 3.2s ease-in-out infinite alternate;
+}
+html:root :is(.mdl-spinner, .docspinner, .MuiCircularProgress-root)::after {
+  background: linear-gradient(#6a2232, #2a0712) 50% 0 / 26% 10% no-repeat, linear-gradient(#2a0712, #6a2232 40%, #2a0712) 50% 100% / 48% 12% no-repeat;
+}
+@keyframes lv-ld-wax {
+  0%   { background-position: 50% 160%, 30% -40%, 70% 100%, 0 0, 0 0; }
+  50%  { background-position: 45% 60%, 35% 40%, 64% 10%, 0 0, 0 0; }
+  100% { background-position: 55% -50%, 28% 130%, 72% 70%, 0 0, 0 0; }
+}
+
+/* ---- video player: a molten seek bar that flows, a wax-blob play button that wobbles (shared shape: player-base.css) ---- */
+html:root:root {
+  --pl-shade: radial-gradient(ellipse 70% 120% at 50% 150%, rgb(255 61 127 / .35), transparent 70%), linear-gradient(0deg, #120308 0%, rgb(18 3 8 / .75) 45%, transparent);
+  --pl-ink: #fff1e6; --pl-icon: #ffd6c2; --pl-time: #ffd25e; --pl-title-color: #fff1e6;
+  --pl-h: .5em; --pl-r: 1em; --pl-fill-r: 1em; --pl-track: rgb(255 140 80 / .16); --pl-buffer: rgb(255 140 80 / .24);
+  --pl-fill: linear-gradient(90deg, #ff3d7f, #ff8a3d, #ffd25e, #ff8a3d, #ff3d7f) 0 0 / 200% 100%; --pl-fill-glow: 0 0 12px rgb(255 106 61 / .7);
+  --pl-thumb-bg: radial-gradient(circle at 40% 35%, #fff4c8, #ffd25e 35%, #ff8a3d 70%, #ff3d7f); --pl-thumb-w: 1.3em; --pl-thumb-h: 1.3em;
+  --pl-thumb-shadow: 0 0 14px #ff6a3d, 0 0 30px -4px #ff3d7f;
+  --pl-hover-bg: rgb(255 138 61 / .18); --pl-hover-ink: #ffd25e; --pl-hover-shadow: 0 0 22px -4px #ff6a3d;
+  --pl-play-bg: radial-gradient(circle at 40% 35%, #ffd25e, #ff8a3d 55%, #ff3d7f); --pl-play-ink: #2a0712; --pl-play-shadow: 0 0 22px -2px #ff6a3d;
+  --pl-play-hover-shadow: 0 0 34px 0 #ff6a3d, 0 0 60px -10px #ff3d7f;
+  --pl-bubble-bg: rgb(30 6 12 / .92); --pl-bubble-ink: #ffd25e; --pl-bubble-r: 16px; --pl-bubble-border: 1px solid rgb(255 140 80 / .5);
+  --pl-marker: #ffd25e;
+}
+html:root .videoOsdBottom .mdl-slider-background-lower { animation: lv-pl-flow 5s linear infinite; }
+html:root .videoOsdBottom .btnPause { animation: lv-pl-wobble 6s ease-in-out infinite; }
+@keyframes lv-pl-flow { to { background-position: -200% 0; } }
+@keyframes lv-pl-wobble {
+  0%, 100% { border-radius: 50%; }
+  33% { border-radius: 58% 42% 46% 54% / 46% 56% 44% 54%; }
+  66% { border-radius: 44% 56% 52% 48% / 55% 45% 55% 45%; }
+}
+/* Up Next: a smoked-glass capsule glowing like hot wax */
+html:root:root {
+  --pl-panel-bg: radial-gradient(ellipse at 50% 140%, rgb(255 61 127 / .35), transparent 70%), rgb(30 6 12 / .92);
+  --pl-panel-border: 1px solid rgb(255 140 80 / .45); --pl-panel-r: 26px; --pl-panel-shadow: 0 0 40px -6px rgb(255 106 61 / .55);
+  --pl-next-bg: linear-gradient(90deg, #ffd25e, #ff8a3d, #ff3d7f); --pl-next-ink: #2a0712; --pl-next-shadow: 0 0 18px -2px #ff6a3d;
+  --pl-skip-ink: #ffd6c2; --pl-skip-border: 1px solid rgb(255 140 80 / .5); --pl-btn-r2: 999px; --pl-btn-hover-shadow: 0 0 22px -2px #ff6a3d;
+}
+/* subtitles: warm white with a hot-wax glow */
+html:root:root { --pl-sub-ink: #fff1e6; --pl-sub-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000, 0 0 10px rgb(255 106 61 / .6); }
+
+/* ---- forms, search and menus: smoked-glass capsules, round wax-blob checkboxes, warm glow on focus (shared shape: forms-base.css) ---- */
+html:root:root {
+  --fm-panel-bg: rgb(30 6 12 / .8); --fm-panel-border: 1px solid rgb(255 140 80 / .25); --fm-panel-r: 30px;
+  --fm-panel-shadow: 0 24px 60px -28px #000, 0 0 60px -30px #ff6a3d;
+  --fm-field-bg: rgb(24 5 10 / .85); --fm-field-border: 1px solid rgb(255 140 80 / .35); --fm-r: 16px;
+  --fm-focus: #ff8a3d; --fm-focus-ring: 0 0 0 2px rgb(255 138 61 / .45), 0 0 22px -4px #ff6a3d;
+  --fm-label: #fff1e6; --fm-desc: #e6a690; --fm-link: #ffd25e;
+  --fm-check-border: 2px solid rgb(255 140 80 / .55); --fm-check-r: 50%;
+  --fm-check-bg: radial-gradient(circle at 40% 35%, #ffd25e, #ff8a3d 55%, #ff3d7f); --fm-check-ink: #2a0712; --fm-check-glow: 0 0 12px #ff6a3d;
+  --fm-btn-bg: linear-gradient(90deg, #ffd25e, #ff8a3d, #ff3d7f); --fm-btn-ink: #2a0712; --fm-btn-r: 999px; --fm-btn-hover-shadow: 0 0 26px -2px #ff6a3d;
+  --fm-menu-r: 22px; --fm-menu-icon: #ffb347; --fm-menu-hover: rgb(255 138 61 / .18); --fm-menu-hover-ink: #ffd25e;
+}
+
+/* ---- extras: molten blob badges, a thick flowing progress capsule, glowing rims round the cast, a smoked-glass
+   Guide with warm capsules, and a lava-pill scrollbar (shared shape: extras-base.css) ---- */
+html:root:root {
+  --ex-badge-bg: radial-gradient(circle at 35% 30%, #ffd25e, #ffb347 45%, #ff3d7f); --ex-badge-ink: #2a0712; --ex-badge-shadow: 0 0 14px rgb(255 120 60 / .65);
+  --ex-tick-bg: radial-gradient(circle at 35% 30%, #fff1e6, #ffb347 60%, #f55214); --ex-tick-ink: #2a0712;
+  --ex-prog-h: 6px; --ex-prog-r: 6px; --ex-prog-track: rgb(255 140 80 / .16);
+  --ex-prog-fill: linear-gradient(90deg, #ff3d7f, #ffb347, #ffd25e, #ffb347, #ff3d7f) 0 0 / 200% 100%; --ex-prog-glow: 0 0 12px rgb(255 120 60 / .7);
+  --ex-cast-ring: 3px solid #ffb347; --ex-cast-shadow: 0 0 22px rgb(255 61 127 / .45); --ex-cast-hover: #ffd25e; --ex-cast-hover-shadow: 0 0 30px rgb(255 179 71 / .8);
+  --ex-guide-line-color: rgb(255 140 80 / .14); --ex-guide-time: #ffd6c2; --ex-guide-num: #ffb347; --ex-guide-today: #ffd25e;
+  --ex-now-bg: linear-gradient(90deg, rgb(255 61 127 / .3), rgb(255 179 71 / .12)); --ex-now-shadow: inset 3px 0 #ffb347; --ex-cell-hover: rgb(255 179 71 / .2);
+  --ex-tag-bg: linear-gradient(90deg, #ff3d7f, #ffb347); --ex-tag-ink: #2a0712; --ex-tag-r: 999px; --ex-tag-new-bg: #ffd25e;
+  --ex-sb-w: 11px; --ex-sb-thumb: linear-gradient(#ffd25e, #ffb347, #ff3d7f); --ex-sb-thumb-hover: linear-gradient(#fff1e6, #ffd25e, #ffb347); --ex-sb-thumb-flat: #ffb347;
+}
+html:root .itemProgressBarForeground { animation: lv-pl-flow 4s linear infinite; }
+@media (prefers-reduced-motion: reduce) { html:root .itemProgressBarForeground { animation: none; } }

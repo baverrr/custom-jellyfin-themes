@@ -1,0 +1,58 @@
+/* Shared base for the Homepage themes in Jellyfin (Settings > Display > Theme). Each theme.css imports Jellyfin's dark
+   theme, then this file, then sets its own --hp-* / --dcs-* values and decorations.
+   - Aurora Glass (server Custom CSS) is variable driven, so a theme recolours it by setting --dcs-* on html:root:root,
+     which outranks Aurora's :root. Rules that must beat Aurora's !important ones use html:root + !important.
+   - The theme owns the page background: the wallpaper loops, the home fanart slideshow and Aurora's blobs on
+     .backgroundContainer are cleared. Item backdrops on detail pages are content and stay.
+   - Layers: html background = base colour; html::before / html::after / body::before (z-index -1) = decorations behind
+     the page; body::before can instead be an overlay (scanlines, vignette) with a high z-index and pointer-events none.
+   - Homepage's JavaScript effects (canvas rain, lock-on reticle, crosshair, petals...) don't exist here: Jellyfin
+     runs no custom script. Everything is CSS, and stops for prefers-reduced-motion. */
+@font-face { font-family: "JetBrains Mono"; font-style: normal; font-weight: 100 800; font-display: swap; src: url("fonts/jbmono-latin.woff2") format("woff2"); }
+
+html:root:root {
+  /* accent family from three theme colours */
+  --dcs-accent: var(--hp-accent);
+  --dcs-accent-2: var(--hp-accent-2, var(--hp-accent));
+  --dcs-accent-3: var(--hp-accent-3, var(--hp-accent-2, var(--hp-accent)));
+  --dcs-accent-deep: var(--hp-accent-deep, color-mix(in oklch, var(--hp-accent) 70%, black));
+  --dcs-accent-ink: var(--hp-on-accent, #000);
+  --dcs-a08: color-mix(in oklch, var(--hp-accent) 8%, transparent);
+  --dcs-a14: color-mix(in oklch, var(--hp-accent) 14%, transparent);
+  --dcs-a22: color-mix(in oklch, var(--hp-accent) 22%, transparent);
+  --dcs-a35: color-mix(in oklch, var(--hp-accent) 35%, transparent);
+  --dcs-a55: color-mix(in oklch, var(--hp-accent) 55%, transparent);
+}
+
+/* the theme owns the background */
+html:root { background: var(--hp-bg) !important; }
+html:root body { background: transparent !important; }
+html:root body .backgroundContainer { background: transparent !important; animation: none !important; }
+html:root body .backgroundContainer::before, html:root body .backgroundContainer::after { content: none !important; display: none !important; }
+html:root::before, html:root::after { pointer-events: none; }
+
+/* cards */
+html:root .cardScalable {
+  border: var(--hp-card-border, 1px solid var(--dcs-hairline)) !important;
+  border-radius: var(--dcs-r-md) !important;
+  box-shadow: var(--hp-card-shadow, 0 14px 30px -20px rgb(0 0 0 / .9)) !important;
+}
+html:root .card-hoverable:hover .cardScalable, html:root .card:focus-within .cardScalable {
+  border-color: var(--hp-card-hover-border, var(--dcs-accent)) !important;
+  box-shadow: var(--hp-card-hover-shadow, 0 0 0 1px var(--dcs-accent), 0 0 28px -6px var(--dcs-accent)) !important;
+}
+html:root :is(.cardImageContainer, .blurhash-canvas, .cardOverlayContainer, .cardPadder, .cardContent) { border-radius: inherit; }
+
+/* section titles */
+html:root :is(.sectionTitle, .sectionTitle a, .sectionTitle-cards, .itemName) {
+  font-family: var(--hp-title-font, var(--dcs-display)) !important;
+  color: var(--hp-title-color, var(--dcs-text)) !important;
+  text-transform: var(--hp-title-case, none);
+  letter-spacing: var(--hp-title-track, normal);
+  font-style: var(--hp-title-style, normal);
+  text-shadow: var(--hp-title-glow, none);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html:root::before, html:root::after, html:root body::before, html:root .cardScalable { animation: none !important; }
+}

@@ -1,0 +1,158 @@
+/* Styles for effects.js (loaded by it, only while a Homepage theme is active: html.hp-fx.hp-fx-<theme>).
+   Ported from the matching parts of ~/homepage/themes/*.css. */
+
+/* while a video plays nothing of this shows */
+html.hp-fx-video :is(#hp-fx-canvas, #w95-bar, #w95-menu, #w95-saver, #hud-lock, #hud-ticker, #th-read, .bp-x, .bp-read, #cp-bars) { display: none !important; }
+
+/* the CSS stand-ins in the theme files give way to the real effect */
+html.hp-fx-lava:root::before, html.hp-fx-lava:root body::before { display: none !important; }
+html.hp-fx-thermal:root::before { display: none !important; }
+html.hp-fx-cyberpunk:root body::before { display: none !important; }
+
+/* ---- Blueprint: drafting crosshair + readout ---- */
+.bp-x { position: fixed; left: 0; top: 0; z-index: 9997; pointer-events: none; background: rgb(255 255 255 / .28); will-change: transform; }
+.bp-v { width: 1px; height: 100vh; }
+.bp-h { height: 1px; width: 100vw; }
+.bp-read { position: fixed; left: 0; top: 0; z-index: 9997; pointer-events: none; padding: 2px 6px; background: rgb(11 58 117 / .9); border: 1px solid rgb(241 247 255 / .8);
+  color: #ffe066; font: 500 10px/1.4 "JetBrains Mono", monospace; letter-spacing: .06em; white-space: pre; will-change: transform; }
+
+/* ---- Desktop 95: taskbar, Start menu, Shut Down, screensaver ---- */
+html.hp-fx-desktop95 { --w95-out: inset -1px -1px #0a0a0a, inset 1px 1px #fff, inset -2px -2px #808080, inset 2px 2px #dfdfdf; --w95-in: inset -1px -1px #fff, inset 1px 1px #0a0a0a, inset -2px -2px #dfdfdf, inset 2px 2px #808080; }
+html.hp-fx-desktop95 .nowPlayingBar { bottom: 34px !important; }
+html.hp-fx-desktop95 .mainAnimatedPage { padding-bottom: 40px; }
+#w95-bar { position: fixed; left: 0; right: 0; bottom: 0; height: 34px; z-index: 99990; display: flex; align-items: center; gap: 4px; padding: 3px 4px;
+  background: #c0c0c0; box-shadow: inset 0 1px #dfdfdf, inset 0 2px #fff; font: 12px Tahoma, Verdana, sans-serif; color: #000; -webkit-font-smoothing: none; }
+#w95-bar button { height: 26px; display: flex; align-items: center; gap: 6px; padding: 0 8px; border: 0; border-radius: 0; background: #c0c0c0; box-shadow: var(--w95-out); font: inherit; color: #000; cursor: inherit; }
+#w95-bar button:active, #w95-bar .w95-start[aria-expanded="true"] { box-shadow: var(--w95-in); }
+#w95-bar .w95-start { font-weight: 700; flex: none; }
+#w95-bar .w95-logo { color: #000080; font-size: 15px; }
+#w95-bar .w95-tasks { display: flex; gap: 3px; flex: 1; min-width: 0; overflow: hidden; }
+#w95-bar .w95-tasks button { flex: 0 1 150px; min-width: 0; justify-content: flex-start; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#w95-bar .w95-tray { height: 26px; display: flex; align-items: center; padding: 0 10px; box-shadow: var(--w95-in); flex: none; }
+#w95-menu { position: fixed; left: 2px; bottom: 33px; z-index: 99991; display: flex; min-width: 230px; padding: 3px; background: #c0c0c0; box-shadow: var(--w95-out), 3px 3px 0 rgb(0 0 0 / .35);
+  font: 12px Tahoma, Verdana, sans-serif; color: #000; -webkit-font-smoothing: none; }
+#w95-menu[hidden] { display: none; }
+#w95-menu .w95-side { writing-mode: vertical-rl; transform: rotate(180deg); padding: 8px 3px; background: linear-gradient(0deg, #000080, #1084d0); color: #c0c0c0; font: 900 20px/1 Tahoma, sans-serif; }
+#w95-menu .w95-side b { color: #fff; }
+#w95-menu ul { flex: 1; margin: 0; padding: 0; list-style: none; }
+#w95-menu li button { display: block; width: 100%; padding: 9px 18px 9px 10px; border: 0; background: none; font: inherit; color: #000; text-align: left; cursor: inherit; }
+#w95-menu li button:hover, #w95-menu li button:focus-visible { background: #000080; color: #fff; outline: 0; }
+#w95-menu hr { margin: 3px 2px; border: 0; border-top: 1px solid #808080; border-bottom: 1px solid #fff; }
+html.w95-off #reactRoot, html.w95-off #w95-bar { animation: w95-off .6s ease-in forwards; }
+#w95-safe { position: fixed; inset: 0; z-index: 99999; display: grid; place-content: center; gap: 16px; text-align: center; background: #000; color: #ff9a00; font: 700 clamp(18px, 3vw, 30px) Tahoma, sans-serif; -webkit-font-smoothing: none; }
+#w95-safe small { font-size: 12px; font-weight: 400; color: #888; }
+#w95-saver { position: fixed; inset: 0; z-index: 99999; width: 100%; height: 100%; cursor: none !important; }
+@keyframes w95-off { 60% { transform: scale(1, .004); filter: brightness(4); opacity: 1; } to { transform: scale(0, .004); opacity: 0; } }
+
+/* ---- Mission HUD: lock-on reticle + telemetry ticker ---- */
+html.hp-fx-hud .nowPlayingBar { bottom: 24px !important; }
+html.hp-fx-hud .mainAnimatedPage { padding-bottom: 30px; }
+#hud-lock { position: fixed; left: 0; top: 0; z-index: 9996; width: 36px; height: 36px; pointer-events: none; will-change: transform;
+  transition: transform .14s cubic-bezier(.2, .8, .2, 1), width .14s cubic-bezier(.2, .8, .2, 1), height .14s cubic-bezier(.2, .8, .2, 1); }
+#hud-lock i { position: absolute; width: 14px; height: 14px; border: 0 solid #4de1ff; }
+#hud-lock i:nth-child(1) { left: 0; top: 0; border-width: 2px 0 0 2px; } #hud-lock i:nth-child(2) { right: 0; top: 0; border-width: 2px 2px 0 0; }
+#hud-lock i:nth-child(3) { left: 0; bottom: 0; border-width: 0 0 2px 2px; } #hud-lock i:nth-child(4) { right: 0; bottom: 0; border-width: 0 2px 2px 0; }
+#hud-lock:not(.on) i { border-color: rgb(255 176 0 / .7); }
+#hud-lock span { position: absolute; left: 0; bottom: 100%; margin-bottom: 4px; padding: 2px 6px; background: #4de1ff; color: #031418; font: 700 10px/1.3 "JetBrains Mono", monospace; letter-spacing: .1em; white-space: nowrap; }
+#hud-lock span:empty { display: none; }
+#hud-lock.blip { animation: hp-blip .35s ease-out 1; }
+#hud-ticker { position: fixed; left: 0; right: 0; bottom: 0; height: 24px; z-index: 9995; overflow: hidden; pointer-events: none;
+  background: rgb(8 6 3 / .94); border-top: 1px solid rgb(255 176 0 / .55); color: #f0b95e; font: 500 11px/24px "JetBrains Mono", monospace; letter-spacing: .08em; }
+#hud-ticker div { display: inline-block; white-space: pre; padding-left: 16px; animation: hp-ticker 120s linear infinite; will-change: transform; }
+@media (hover: none) { #hud-lock { display: none; } }
+@keyframes hp-blip { 0% { opacity: .2; scale: 1.12; } 100% { opacity: 1; scale: 1; } }
+@keyframes hp-ticker { to { transform: translateX(-50%); } }
+
+/* ---- Thermal Vision: temperature probe ---- */
+#th-read { position: fixed; left: 0; top: 0; z-index: 9996; pointer-events: none; padding: 2px 6px; will-change: transform;
+  background: rgb(0 0 0 / .6); border: 1px solid rgb(255 255 255 / .5); color: #fff; font: 700 11px/1.3 "JetBrains Mono", monospace; }
+#th-read::before { content: ""; position: absolute; left: -24px; top: -24px; width: 12px; height: 12px; border: 1.5px solid #fff; border-radius: 50%; box-shadow: 0 0 0 1px #0008; }
+
+/* ---- Cyberpunk: decrypting names + glitch bursts ---- */
+html.hp-fx-cyberpunk .cardText[data-scr] { position: relative; }
+html.hp-fx-cyberpunk .cardText[data-scr]::after { content: attr(data-scr); position: absolute; inset: 0; white-space: nowrap; overflow: hidden; color: #00f0ff; background: #07070b; font: inherit; letter-spacing: inherit; }
+#cp-bars { position: fixed; inset: 0; z-index: 9991; pointer-events: none; opacity: 0;
+  background: linear-gradient(transparent 18%, rgb(0 240 255 / .18) 18% 21%, transparent 21% 57%, rgb(255 0 60 / .2) 57% 58.5%, transparent 58.5% 76%, rgb(123 47 208 / .14) 76% 77%, transparent 77%); }
+html.cp-glitch #cp-bars { opacity: 1; animation: hp-bars .28s steps(3) 1; }
+html.cp-glitch #reactRoot { animation: hp-shake .28s steps(3) 1; }
+@keyframes hp-shake { 0% { transform: translate(-6px, 2px) skewX(-4deg); } 33% { transform: translate(5px, -2px) skewX(3deg); } 66% { transform: translate(-2px, 0); } 100% { transform: none; } }
+@keyframes hp-bars { 0% { transform: translateY(-8vh); } 50% { transform: translateY(12vh); } 100% { transform: translateY(-3vh); } }
+
+/* ---- Sakura: kanji labels on section titles (in place of the plain red dot) ---- */
+html.hp-fx-sakura h2.sectionTitle[data-kanji]::after { content: attr(data-kanji) !important; width: auto !important; height: auto !important; border-radius: 2px !important;
+  margin-left: .55em; padding: 0 .3em; color: #fffbf2; background: #d23a2a !important; font-weight: 700; font-size: .8em; vertical-align: .1em; }
+
+
+/* ---- Card titles (every theme but Cyberpunk): effects.js lays a per-letter copy (.hp-tt, letters <i style="--i">) over
+   the title of the card you point at; the real text is hidden meanwhile. Letters start in their keyframes' 0% state
+   (fill-mode both) and end on the plain title, so the copy can just disappear. Titles clip (overflow: hidden), so
+   the effects stay mostly in colour, glow and squash rather than big moves. ---- */
+.hp-tt-on { position: relative; -webkit-text-fill-color: transparent; text-shadow: none !important; }
+.hp-tt { position: absolute; inset: 0; z-index: 1; pointer-events: none; padding: inherit; overflow: hidden; white-space: pre; text-overflow: ellipsis;
+  text-align: inherit; -webkit-text-fill-color: currentColor; }
+/* letters start --tt-step apart (per theme), squeezed so a long title's cascade still takes about a second */
+.hp-tt { --tt-step: 30ms; --tt-gap: min(var(--tt-step), 1s / var(--n)); }
+.hp-tt i { display: inline-block; font-style: inherit; animation: .6s ease-out calc(var(--i) * var(--tt-gap)) both; }
+
+/* Neon Arcade: each letter buzzes on like a tube, white-hot, then settles through cyan with a chromatic split */
+html.hp-fx-neon .hp-tt { --tt-step: 35ms; }
+html.hp-fx-neon .hp-tt i { animation-name: tt-neon; animation-duration: .7s; animation-timing-function: linear; }
+@keyframes tt-neon {
+  0% { opacity: 0; } 8% { opacity: 1; color: #fff; text-shadow: 0 0 6px #ff2bd6, 0 0 16px #ff2bd6; } 14% { opacity: .15; } 20% { opacity: 1; } 26% { opacity: .35; }
+  34% { opacity: 1; color: #00f0ff; text-shadow: 2px 0 #ff2bd6, -2px 0 #00f0ff, 0 0 12px #00f0ff; } 75% { color: #00f0ff; text-shadow: 1px 0 #ff2bd6, -1px 0 #00f0ff, 0 0 8px #00f0ff; }
+}
+/* Phosphor: retyped at the terminal, the block cursor running along the letters */
+html.hp-fx-terminal .hp-tt { --tt-step: 28ms; }
+html.hp-fx-terminal .hp-tt i { animation-name: tt-terminal; animation-duration: .2s; animation-timing-function: steps(1, end); }
+@keyframes tt-terminal { 0% { opacity: 0; } 1%, 99% { opacity: 1; color: #001a00; background: #39ff50; box-shadow: 0 0 8px #39ff50; } }
+/* Cosmos: a ripple runs through the letters, each lifting and glinting through the foil colours */
+html.hp-fx-cosmos .hp-tt { --tt-step: 40ms; }
+html.hp-fx-cosmos .hp-tt i { animation-name: tt-cosmos; animation-duration: .9s; animation-timing-function: ease-in-out; }
+@keyframes tt-cosmos {
+  25% { transform: translateY(-.14em) scale(1.12); color: #ff9be8; text-shadow: 0 0 10px #ff9be8; }
+  50% { transform: translateY(.04em); color: #7dd8ff; text-shadow: 0 0 8px #7dd8ff; } 75% { color: #fff35c; }
+}
+/* Blueprint: each letter is laid out as a dashed construction box, then inked in yellow; a dimension line is drawn under */
+html.hp-fx-blueprint .hp-tt { --tt-step: 28ms; }
+html.hp-fx-blueprint .hp-tt i { animation-name: tt-blueprint; animation-duration: .5s; animation-timing-function: steps(1, end); }
+@keyframes tt-blueprint { 0% { opacity: 0; } 1% { opacity: 1; color: transparent; outline: 1px dashed rgb(241 247 255 / .75); outline-offset: -1px; } 40% { color: #ffe066; } 85% { color: #ffe066; } }
+html.hp-fx-blueprint .hp-tt::after { content: ""; position: absolute; left: 0; right: 0; bottom: 1px; height: 1px; background: #ffe066; transform-origin: left;
+  animation: tt-bp-dim calc(var(--n) * var(--tt-gap) + .5s) ease-out both; }
+@keyframes tt-bp-dim { 0% { transform: scaleX(0); } 80% { transform: scaleX(1); opacity: 1; } 100% { transform: scaleX(1); opacity: 0; } }
+/* Lava Lamp: letters well up like warm wax — squashed and blurred, then stretching, wobbling and cooling */
+html.hp-fx-lava .hp-tt { --tt-step: 45ms; }
+html.hp-fx-lava .hp-tt i { transform-origin: 50% 100%; animation-name: tt-lava; animation-duration: .9s; animation-timing-function: ease-in-out; }
+@keyframes tt-lava {
+  0% { opacity: 0; transform: scale(1.2, .3); filter: blur(2px); color: #ffd25e; }
+  35% { opacity: 1; transform: scale(.85, 1.25); filter: blur(.4px); color: #ff8a3d; text-shadow: 0 0 10px #ff3d7f; }
+  65% { transform: scale(1.08, .92); color: #ff3d7f; text-shadow: 0 0 8px #ff6a3d; } 85% { transform: scale(.98, 1.03); }
+}
+/* Desktop 95: the name is selected like a desktop icon's label — the navy highlight and a dotted focus box sweep across */
+html.hp-fx-desktop95 .hp-tt { --tt-step: 18ms; }
+html.hp-fx-desktop95 .hp-tt i { animation-name: tt-w95; animation-duration: .9s; animation-timing-function: steps(1, end); }
+@keyframes tt-w95 { 0% { background: transparent; } 1%, 75% { background: #000080; color: #fff; } }
+html.hp-fx-desktop95 .hp-tt::before { content: ""; position: absolute; inset: 0; border: 1px dotted #ffff00; animation: tt-w95-focus calc(var(--n) * var(--tt-gap) + .7s) steps(1, end) both; }
+@keyframes tt-w95-focus { 0% { opacity: 1; } 100% { opacity: 0; } }
+/* Mission HUD: a cyan scan bar crosses the name and each letter snaps in behind it, cyan then back to amber */
+html.hp-fx-hud .hp-tt { --tt-step: 22ms; }
+html.hp-fx-hud .hp-tt i { animation-name: tt-hud; animation-duration: .7s; animation-timing-function: ease-out; }
+@keyframes tt-hud { 0% { opacity: 0; transform: scaleY(.15); } 12% { opacity: 1; transform: scaleY(1.35); color: #fff; text-shadow: 0 0 8px #4de1ff; } 30% { transform: none; color: #4de1ff; text-shadow: 0 0 6px #4de1ff; } 70% { color: #4de1ff; } }
+html.hp-fx-hud .hp-tt::after { content: ""; position: absolute; top: 0; bottom: 0; left: 0; width: 2px; background: #4de1ff; box-shadow: 0 0 8px #4de1ff, 0 0 2px #fff;
+  animation: tt-hud-scan calc(var(--n) * var(--tt-gap) + .15s) linear both; }
+@keyframes tt-hud-scan { 0% { left: 0; opacity: 1; } 90% { opacity: 1; } 100% { left: 100%; opacity: 0; } }
+/* Thermal Vision: a heat wave passes along the name, each letter running up the ironbow scale to white-hot and cooling */
+html.hp-fx-thermal .hp-tt { --tt-step: 30ms; }
+html.hp-fx-thermal .hp-tt i { animation-name: tt-thermal; animation-duration: .8s; animation-timing-function: linear; }
+@keyframes tt-thermal {
+  0% { color: #76008c; } 18% { color: #c8145c; text-shadow: 0 0 6px #c8145c; } 36% { color: #f55214; text-shadow: 0 0 8px #f55214; }
+  54% { color: #ffaa00; text-shadow: 0 0 10px #ffaa00; } 70% { color: #fffff0; text-shadow: 0 0 12px #ffec60, 0 0 4px #fff; }
+}
+/* Sakura: brushed in stroke by stroke — each letter blooms out of soft vermilion ink and dries to cream; a red brush line follows */
+html.hp-fx-sakura .hp-tt { --tt-step: 50ms; }
+html.hp-fx-sakura .hp-tt i { animation-name: tt-sakura; animation-duration: .8s; animation-timing-function: ease-out; }
+@keyframes tt-sakura { 0% { opacity: 0; filter: blur(3px); transform: translateY(-.12em) rotate(-8deg); color: #d23a2a; } 45% { opacity: 1; filter: blur(0); transform: none; color: #e2513c; } }
+html.hp-fx-sakura .hp-tt::after { content: ""; position: absolute; left: 0; right: 0; bottom: 1px; height: 2px; border-radius: 2px; background: linear-gradient(90deg, #d23a2a, #d23a2a 70%, transparent);
+  transform-origin: left; animation: tt-sk-brush calc(var(--n) * var(--tt-gap) + .6s) ease-out both; }
+@keyframes tt-sk-brush { 0% { transform: scaleX(0); } 70% { transform: scaleX(1); opacity: .9; } 100% { transform: scaleX(1); opacity: 0; } }
+
+@media (prefers-reduced-motion: reduce) { #hud-ticker div, #hud-lock { animation: none !important; transition: none !important; } }

@@ -1,0 +1,138 @@
+/* NEON ARCADE (from Homepage's neon.css) — synthwave arcade cabinet: a striped sun over a perspective grid floor,
+   CRT scanlines, neon-tube card frames cycling magenta / cyan / yellow, chromatic titles. */
+@import url("../../dark/theme.css");
+@import url("../_base.css");
+@import url("../loader-base.css"); /* this theme draws its own loading animation */
+@import url("../player-base.css"); /* themed video player controls */
+@import url("../forms-base.css"); /* themed settings forms, search page and menus */
+@import url("../extras-base.css"); /* themed badges, progress bars, cast row, Live TV Guide and scrollbars */
+@import url("tiles/tiles.css"); /* My Media tiles, from ~/media-stack/jellyfin/library-covers/tiles */
+
+html:root:root {
+  --hp-accent: #00f0ff; --hp-accent-2: #ff2bd6; --hp-accent-3: #fff35c; --hp-on-accent: #1a0640;
+  --hp-bg: linear-gradient(180deg, #0b0221 0%, #2a0a5e 55%, #ff2bd6 100%) fixed;
+  --dcs-ink-0: #0d0225; --dcs-ink-1: #1a0640; --dcs-ink-2: #240856; --dcs-ink-3: #3c0c6e;
+  --dcs-glass: rgb(28 6 64 / .72); --dcs-glass-strong: rgb(18 3 44 / .94);
+  --dcs-hairline: rgb(255 60 220 / .28); --dcs-hairline-strong: rgb(255 60 220 / .6);
+  --dcs-text: #fff; --dcs-text-dim: #f0d4ff; --dcs-text-mute: #c4a6ff;
+  --dcs-r-xs: 2px; --dcs-r-sm: 4px; --dcs-r-md: 4px; --dcs-r-lg: 6px;
+  --hp-card-border: 2px solid #ff2bd6;
+  --hp-card-shadow: 0 0 6px #ff2bd6, 0 0 22px #ff2bd666, inset 0 0 18px #ff2bd633;
+  --hp-card-hover-border: #00f0ff;
+  --hp-card-hover-shadow: 6px 6px 0 #00f0ff, 0 0 40px #ff2bd6;
+  --hp-title-color: #00f0ff; --hp-title-case: uppercase; --hp-title-track: .22em; --hp-title-style: italic;
+  --hp-title-glow: 0 0 10px #00f0ff, 0 0 28px #00f0ff;
+}
+/* cycle tube colours like the Homepage cards */
+html:root .card:nth-child(3n+2) .cardScalable { border-color: #00f0ff !important; box-shadow: 0 0 6px #00f0ff, 0 0 22px #00f0ff66, inset 0 0 18px #00f0ff33 !important; }
+html:root .card:nth-child(3n) .cardScalable { border-color: #fff35c !important; box-shadow: 0 0 6px #fff35c, 0 0 22px #fff35c55, inset 0 0 18px #fff35c2e !important; }
+html:root .itemName { text-shadow: 3px 0 #ff2bd6, -3px 0 #00f0ff, 0 0 22px #ff2bd6aa; }
+
+/* the sun, with slatted cut-outs */
+html:root::before {
+  content: ""; position: fixed; left: 50%; bottom: 18vh; width: min(70vw, 620px); aspect-ratio: 1; translate: -50% 0; z-index: -1;
+  background: linear-gradient(180deg, #fff35c 0%, #ff9a3c 40%, #ff2bd6 100%); border-radius: 50%;
+  -webkit-mask: repeating-linear-gradient(180deg, #000 0 14px, transparent 14px 18px) bottom / 100% 55% no-repeat, linear-gradient(#000, #000) top / 100% 45% no-repeat;
+  mask: repeating-linear-gradient(180deg, #000 0 14px, transparent 14px 18px) bottom / 100% 55% no-repeat, linear-gradient(#000, #000) top / 100% 45% no-repeat;
+  opacity: .5; animation: hp-sun 6s ease-in-out infinite;
+}
+/* the grid floor racing toward you */
+html:root::after {
+  content: ""; position: fixed; left: -50%; right: -50%; bottom: 0; height: 18vh; z-index: -1;
+  background: linear-gradient(90deg, rgb(0 240 255 / .75) 2px, transparent 2px) 0 0 / 80px 100%, linear-gradient(0deg, rgb(0 240 255 / .75) 2px, transparent 2px) 0 0 / 100% 40px, #12032e;
+  transform: perspective(260px) rotateX(62deg); transform-origin: top; animation: hp-floor 1.4s linear infinite;
+  box-shadow: 0 -20px 60px #00f0ff55 inset;
+}
+/* CRT scanlines + vignette over everything */
+html:root body::before {
+  content: ""; position: fixed; inset: 0; z-index: 9990; pointer-events: none;
+  background: repeating-linear-gradient(0deg, rgb(0 0 0 / .18) 0 1px, transparent 1px 3px), radial-gradient(ellipse at center, transparent 55%, rgb(0 0 0 / .5) 100%);
+}
+@keyframes hp-sun { 50% { opacity: .7; } }
+@keyframes hp-floor { to { background-position: 0 0, 0 40px, 0 0; } }
+
+/* loading animation: a neon-tube arc spinning round a slatted synthwave sun, the tube buzzing through magenta, cyan and
+   yellow like the card frames, with a chromatic "LOADING" sign underneath (slots: loader-base.css) */
+@property --nn-c { syntax: "<color>"; inherits: true; initial-value: #ff2bd6; }
+html:root :is(.mdl-spinner, .docspinner, .MuiCircularProgress-root) {
+  filter: drop-shadow(0 0 4px var(--nn-c)) drop-shadow(0 0 14px var(--nn-c)); animation: nn-ld-tube 3.6s steps(1) infinite !important;
+}
+html:root :is(.mdl-spinner, .docspinner, .MuiCircularProgress-root)::before {
+  border-radius: 50%; background: conic-gradient(var(--nn-c) 0 72%, transparent 72%);
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 4px), #000 calc(100% - 3.5px)); mask: radial-gradient(farthest-side, transparent calc(100% - 4px), #000 calc(100% - 3.5px));
+  animation: nn-ld-spin .9s linear infinite;
+}
+html:root :is(.mdl-spinner, .docspinner, .MuiCircularProgress-root)::after {
+  inset: 22%; border-radius: 50%; background: linear-gradient(180deg, #fff35c 0%, #ff9a3c 45%, #ff2bd6 100%);
+  -webkit-mask: linear-gradient(#000 0 48%, transparent 48%), repeating-linear-gradient(180deg, #000 0 4px, transparent 4px 7px);
+          mask: linear-gradient(#000 0 48%, transparent 48%), repeating-linear-gradient(180deg, #000 0 4px, transparent 4px 7px);
+  animation: nn-ld-slats .7s linear infinite;
+}
+html:root :is(.mdl-spinner, .docspinner) > .mdl-spinner__layer:first-child::before {
+  content: "LOADING"; inset: auto; left: 50%; top: calc(100% + 14px); transform: translateX(-50%); white-space: nowrap;
+  font: italic 800 12px/1 var(--dcs-display, sans-serif); letter-spacing: .3em; color: #fff; text-shadow: 2px 0 #ff2bd6, -2px 0 #00f0ff;
+  animation: nn-ld-flicker 2.4s steps(1) infinite;
+}
+@keyframes nn-ld-tube { 0% { --nn-c: #ff2bd6; } 31% { --nn-c: #8a1773; } 33% { --nn-c: #00f0ff; } 64% { --nn-c: #00808a; } 66% { --nn-c: #fff35c; } 98% { --nn-c: #8a8331; } }
+@keyframes nn-ld-spin { to { transform: rotate(360deg); } }
+@keyframes nn-ld-slats { to { -webkit-mask-position: 0 0, 0 7px; mask-position: 0 0, 0 7px; } }
+@keyframes nn-ld-flicker { 0%, 40%, 46%, 100% { opacity: 1; } 42% { opacity: .2; } 44% { opacity: .8; } 45% { opacity: .1; } }
+
+/* ---- video player: arcade cabinet controls, a grid floor racing under them (shared shape: player-base.css) ---- */
+html:root:root {
+  --pl-shade: linear-gradient(0deg, #12032e 0%, rgb(26 6 64 / .85) 40%, transparent);
+  --pl-ink: #f0d4ff; --pl-icon: #00f0ff; --pl-icon-glow: 0 0 6px #00f0ff, 0 0 14px rgb(0 240 255 / .6);
+  --pl-title-color: #fff; --pl-title-glow: 2px 0 #ff2bd6, -2px 0 #00f0ff, 0 0 14px #ff2bd6aa;
+  --pl-time: #fff35c; --pl-time-glow: 0 0 6px rgb(255 243 92 / .7);
+  --pl-h: 4px; --pl-r: 2px; --pl-track: rgb(255 43 214 / .22); --pl-buffer: rgb(255 43 214 / .32);
+  --pl-fill: linear-gradient(90deg, #ff2bd6, #00f0ff); --pl-fill-glow: 0 0 8px #ff2bd6, 0 0 16px rgb(0 240 255 / .6);
+  --pl-thumb-bg: #fff35c; --pl-thumb-w: .9em; --pl-thumb-h: .9em; --pl-thumb-shadow: 0 0 6px #fff35c, 0 0 16px #ff2bd6;
+  --pl-hover-bg: rgb(255 43 214 / .18); --pl-hover-ink: #fff; --pl-hover-shadow: 0 0 0 1.5px #ff2bd6, 0 0 14px #ff2bd6;
+  --pl-play-bg: rgb(26 6 64 / .6); --pl-play-ink: #00f0ff; --pl-play-border: 2px solid #ff2bd6;
+  --pl-play-shadow: 0 0 8px #ff2bd6, inset 0 0 8px #ff2bd666; --pl-play-hover-bg: #ff2bd6; --pl-play-hover-ink: #1a0640;
+  --pl-bubble-bg: #1a0640; --pl-bubble-ink: #fff35c; --pl-bubble-border: 2px solid #00f0ff; --pl-bubble-shadow: 0 0 12px #00f0ff;
+  --pl-marker: #fff35c;
+}
+html:root .videoOsdBottom::before {
+  content: ""; position: absolute; left: -50%; right: -50%; bottom: 0; height: 60%; z-index: -1; pointer-events: none; opacity: .4;
+  background: linear-gradient(90deg, rgb(0 240 255 / .7) 2px, transparent 2px) 0 0 / 80px 100%, linear-gradient(0deg, rgb(0 240 255 / .7) 2px, transparent 2px) 0 0 / 100% 40px;
+  transform: perspective(220px) rotateX(58deg); transform-origin: bottom; animation: hp-floor 1.4s linear infinite;
+  -webkit-mask: linear-gradient(0deg, #000 30%, transparent); mask: linear-gradient(0deg, #000 30%, transparent);
+}
+/* Up Next: a neon-tube card */
+html:root:root {
+  --pl-panel-bg: rgb(26 6 64 / .92); --pl-panel-border: 2px solid #ff2bd6; --pl-panel-r: 4px;
+  --pl-panel-shadow: 0 0 8px #ff2bd6, 0 0 30px #ff2bd666, inset 0 0 18px #ff2bd633;
+  --pl-next-bg: #ff2bd6; --pl-next-ink: #1a0640; --pl-next-shadow: 0 0 12px #ff2bd6;
+  --pl-skip-ink: #00f0ff; --pl-skip-border: 2px solid #00f0ff; --pl-btn-case: uppercase; --pl-btn-hover-shadow: 0 0 16px #00f0ff;
+}
+/* subtitles: white neon with a magenta tube glow */
+html:root:root { --pl-sub-ink: #fff; --pl-sub-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000, 0 0 6px #ff2bd6, 0 0 14px #ff2bd6; }
+
+/* ---- forms, search and menus: neon-tube fields that light cyan when focused (shared shape: forms-base.css) ---- */
+html:root:root {
+  --fm-panel-bg: rgb(18 3 44 / .84); --fm-panel-border: 1px solid rgb(255 60 220 / .45); --fm-panel-r: 6px;
+  --fm-panel-shadow: 0 0 24px rgb(255 43 214 / .25), inset 0 0 30px rgb(255 43 214 / .08);
+  --fm-field-bg: rgb(13 2 37 / .9); --fm-field-border: 1px solid rgb(255 43 214 / .6); --fm-r: 3px;
+  --fm-focus: #00f0ff; --fm-focus-ring: 0 0 0 1px #00f0ff, 0 0 14px rgb(0 240 255 / .55);
+  --fm-label: #f0d4ff; --fm-desc: #c4a6ff; --fm-link: #00f0ff;
+  --fm-check-border: 2px solid #ff2bd6; --fm-check-bg: #ff2bd6; --fm-check-ink: #1a0640; --fm-check-glow: 0 0 8px #ff2bd6;
+  --fm-btn-bg: #ff2bd6; --fm-btn-ink: #1a0640; --fm-btn-shadow: 0 0 12px #ff2bd6; --fm-btn-case: uppercase; --fm-btn-track: .12em;
+  --fm-btn-hover-shadow: 0 0 0 2px #00f0ff, 0 0 18px #00f0ff;
+  --fm-menu-icon: #00f0ff; --fm-menu-hover: rgb(255 43 214 / .22); --fm-menu-hover-ink: #fff;
+}
+
+/* ---- extras: magenta tube badges, a magenta-to-cyan progress beam, neon-ringed cast photos, the Guide as a lit
+   grid, and a glowing scrollbar (shared shape: extras-base.css) ---- */
+html:root:root {
+  --ex-badge-bg: #ff2bd6; --ex-badge-ink: #1a0640; --ex-badge-shadow: 0 0 10px #ff2bd6, 0 0 2px #fff;
+  --ex-tick-bg: #00f0ff; --ex-tick-ink: #1a0640;
+  --ex-prog-track: rgb(26 6 64 / .85); --ex-prog-fill: linear-gradient(90deg, #ff2bd6, #00f0ff); --ex-prog-glow: 0 0 8px #ff2bd6, 0 0 14px rgb(0 240 255 / .6);
+  --ex-cast-ring: 2px solid #ff2bd6; --ex-cast-shadow: 0 0 14px rgb(255 43 214 / .55); --ex-cast-hover: #00f0ff; --ex-cast-hover-shadow: 0 0 18px #00f0ff, 0 0 4px #fff;
+  --ex-guide-line-color: rgb(255 43 214 / .22); --ex-guide-line: 1px solid rgb(0 240 255 / .35);
+  --ex-guide-time: #00f0ff; --ex-guide-glow: 0 0 8px rgb(0 240 255 / .7); --ex-guide-num: #fff35c; --ex-guide-today: #00f0ff;
+  --ex-now-bg: linear-gradient(90deg, rgb(255 43 214 / .28), rgb(255 43 214 / .08)); --ex-now-shadow: inset 2px 0 #00f0ff, inset 0 -1px rgb(255 43 214 / .6);
+  --ex-cell-hover: rgb(0 240 255 / .16);
+  --ex-tag-bg: #ff2bd6; --ex-tag-ink: #1a0640; --ex-tag-shadow: 0 0 8px #ff2bd6; --ex-tag-new-bg: #00f0ff;
+  --ex-sb-thumb: linear-gradient(#ff2bd6, #00f0ff); --ex-sb-thumb-hover: linear-gradient(#ff6be4, #6ff7ff); --ex-sb-thumb-flat: #ff2bd6; --ex-sb-track: rgb(26 6 64 / .5);
+}

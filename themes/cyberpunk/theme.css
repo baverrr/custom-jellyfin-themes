@@ -1,0 +1,184 @@
+/* CYBERPUNK (from Homepage's cyberpunk.css) — a Night City netrunner rig: purple, cyan and alarm red on black,
+   rain falling past flickering kanji neon signs, cut-corner panels with a purple edge bar, slanted purple section
+   tags. (The decrypting card names and glitch bursts are Homepage JavaScript.) */
+@import url("../../dark/theme.css");
+@import url("../_base.css");
+@import url("../loader-base.css"); /* this theme draws its own loading animation */
+@import url("../player-base.css"); /* themed video player controls */
+@import url("../forms-base.css"); /* themed settings forms, search page and menus */
+@import url("../extras-base.css"); /* themed badges, progress bars, cast row, Live TV Guide and scrollbars */
+@import url("tiles/tiles.css"); /* My Media tiles, from ~/media-stack/jellyfin/library-covers/tiles */
+
+html:root:root {
+  --hp-accent: #7b2fd0; --hp-accent-2: #00f0ff; --hp-accent-3: #ff003c; --hp-on-accent: #fff;
+  --hp-bg: radial-gradient(ellipse at 20% 0%, #1b0820, transparent 55%), radial-gradient(ellipse at 90% 100%, #001b26, transparent 55%), #07070b fixed;
+  --dcs-ink-0: #07070b; --dcs-ink-1: #09090f; --dcs-ink-2: #0c0c14; --dcs-ink-3: #141422;
+  --dcs-glass: rgb(12 12 20 / .88); --dcs-glass-strong: rgb(9 9 15 / .97);
+  --dcs-hairline: rgb(0 240 255 / .22); --dcs-hairline-strong: rgb(0 240 255 / .55);
+  --dcs-text: #eaf7ff; --dcs-text-dim: #bcd6e8; --dcs-text-mute: #8197aa;
+  --dcs-r-xs: 0; --dcs-r-sm: 0; --dcs-r-md: 0; --dcs-r-lg: 0; --dcs-r-pill: 0;
+  --hp-card-border: 0 solid transparent;
+  --hp-card-shadow: none;
+  --hp-card-hover-border: transparent;
+  --hp-card-hover-shadow: none;
+  --hp-title-case: uppercase; --hp-title-track: .08em; --hp-cut: 14px;
+}
+/* cut-corner panels: the corners are clipped, a purple edge bar runs down the left and the cut edges are stroked cyan */
+html:root .cardScalable {
+  clip-path: polygon(0 0, calc(100% - var(--hp-cut)) 0, 100% var(--hp-cut), 100% 100%, var(--hp-cut) 100%, 0 calc(100% - var(--hp-cut)));
+}
+html:root .cardScalable .cardImageContainer::after {
+  content: ""; position: absolute; inset: 0; z-index: 3; pointer-events: none;
+  background:
+    linear-gradient(225deg, transparent 9px, #00f0ff 9px 11px, transparent 11px),
+    linear-gradient(45deg, transparent 9px, #00f0ff 9px 11px, transparent 11px),
+    linear-gradient(#7b2fd0, #7b2fd0) 0 0 / 3px 100% no-repeat;
+}
+html:root .card-hoverable:hover .cardScalable .cardImageContainer::after {
+  background:
+    linear-gradient(225deg, transparent 9px, #ff003c 9px 11px, transparent 11px),
+    linear-gradient(45deg, transparent 9px, #ff003c 9px 11px, transparent 11px),
+    linear-gradient(#ff003c, #ff003c) 0 0 / 3px 100% no-repeat;
+}
+/* section titles as slanted purple tags */
+html:root h2.sectionTitle, html:root .sectionTitle-cards {
+  display: inline-block; padding: 2px 16px 2px 10px !important; background: #7b2fd0; color: #fff !important;
+  clip-path: polygon(0 0, 100% 0, calc(100% - 10px) 100%, 0 100%); font-weight: 900 !important;
+}
+html:root h2.sectionTitle a { color: #fff !important; }
+html:root .itemName { text-shadow: 2px 0 #ff003c, -2px 0 #00f0ff; }
+
+/* neon kanji signs in the "street" */
+html:root::before, html:root::after {
+  position: fixed; top: 10vh; z-index: -1; writing-mode: vertical-rl; letter-spacing: .1em; opacity: .16;
+  font: 900 clamp(48px, 7vw, 120px)/1 "Noto Sans CJK JP", "Hiragino Sans", "Yu Gothic", sans-serif;
+}
+html:root::before { content: "電脳都市"; left: 1vw; color: #00f0ff; text-shadow: 0 0 18px #00f0ff; animation: hp-sign 7s steps(1) infinite; }
+html:root::after { content: "ネットランナー"; right: 1vw; color: #ff003c; text-shadow: 0 0 18px #ff003c; animation: hp-sign 9s steps(1) infinite 2s; }
+/* slanted rain */
+html:root body::before {
+  content: ""; position: fixed; inset: -100% -20% 0; z-index: -1; pointer-events: none; transform: rotate(12deg);
+  background: repeating-linear-gradient(90deg, transparent 0 37px, rgb(0 240 255 / .14) 37px 38px, transparent 38px 91px, rgb(123 47 208 / .12) 91px 92px, transparent 92px 140px);
+  -webkit-mask: repeating-linear-gradient(180deg, #000 0 40px, transparent 40px 170px); mask: repeating-linear-gradient(180deg, #000 0 40px, transparent 40px 170px);
+  animation: hp-rain .9s linear infinite;
+}
+@keyframes hp-sign { 0%, 41%, 45%, 100% { opacity: .16; } 43% { opacity: .05; } 72% { opacity: .22; } }
+@keyframes hp-rain { to { translate: 0 170px; } }
+
+/* loading animation: "jacking in" — a cut-corner panel with the purple edge bar and cyan-stroked corners, a segmented
+   cyan ICE ring ticking round inside it, a red arc counter-spinning at its heart, the whole thing glitching now and
+   then, and a chromatic 接続中 ("connecting") tag underneath (slots: loader-base.css) */
+html:root :is(.mdl-spinner, .docspinner, .MuiCircularProgress-root) { animation: cp-ld-glitch 2.8s steps(1) infinite !important; }
+html:root :is(.mdl-spinner, .docspinner, .MuiCircularProgress-root)::before {
+  clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 14px 100%, 0 calc(100% - 14px));
+  background: linear-gradient(225deg, transparent 9px, #00f0ff 9px 11px, transparent 11px),
+              linear-gradient(45deg, transparent 9px, #00f0ff 9px 11px, transparent 11px),
+              linear-gradient(#7b2fd0, #7b2fd0) 0 0 / 3px 100% no-repeat,
+              linear-gradient(rgb(0 240 255 / .35), rgb(0 240 255 / .35)) 0 0 / 100% 1px no-repeat,
+              linear-gradient(rgb(0 240 255 / .35), rgb(0 240 255 / .35)) 0 100% / 100% 1px no-repeat,
+              rgb(12 12 20 / .9);
+}
+html:root :is(.mdl-spinner, .docspinner, .MuiCircularProgress-root)::after {
+  inset: 17%; border-radius: 50%; background: repeating-conic-gradient(#00f0ff 0 18deg, transparent 18deg 30deg);
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 5px), #000 calc(100% - 4.5px)); mask: radial-gradient(farthest-side, transparent calc(100% - 5px), #000 calc(100% - 4.5px));
+  filter: drop-shadow(0 0 4px #00f0ff); animation: cp-ld-tick 1.2s steps(12) infinite;
+}
+html:root :is(.mdl-spinner, .docspinner) > .mdl-spinner__layer:first-child::before {
+  inset: 33%; border-radius: 50%; background: conic-gradient(#ff003c 0 30%, transparent 30% 50%, #7b2fd0 50% 62%, transparent 62%);
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 2.5px)); mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 2.5px));
+  filter: drop-shadow(0 0 4px #ff003c); animation: cp-ld-arc .8s linear infinite reverse;
+}
+html:root :is(.mdl-spinner, .docspinner) > .mdl-spinner__layer:first-child::after {
+  content: "接続中"; inset: auto; left: 50%; top: calc(100% + 10px); transform: translateX(-50%); white-space: nowrap;
+  padding: 1px 12px 1px 8px; background: #7b2fd0; clip-path: polygon(0 0, 100% 0, calc(100% - 7px) 100%, 0 100%);
+  font: 900 11px/1.4 "Noto Sans CJK JP", "Hiragino Sans", "Yu Gothic", sans-serif; letter-spacing: .25em; color: #fff;
+  text-shadow: 1.5px 0 #ff003c, -1.5px 0 #00f0ff;
+}
+@keyframes cp-ld-tick { to { transform: rotate(360deg); } }
+@keyframes cp-ld-arc { to { transform: rotate(360deg); } }
+@keyframes cp-ld-glitch {
+  0%, 84%, 100% { transform: none; filter: none; }
+  86% { transform: translate(-3px, 1px) skewX(-6deg); filter: hue-rotate(90deg); }
+  89% { transform: translate(4px, -1px); filter: none; }
+  92% { transform: translate(-1px, 0) skewX(4deg); }
+}
+
+/* ---- video player: the controls in a cut-corner panel with the purple edge bar, a red playhead, a slanted
+   purple play tag and a 再生中 ("now playing") tag that glitches now and then (shared shape: player-base.css) ---- */
+html:root:root {
+  --pl-shade: linear-gradient(0deg, #07070b 0%, rgb(7 7 11 / .7) 40%, transparent);
+  --pl-ink: #eaf7ff; --pl-icon: #00f0ff; --pl-time: #00f0ff;
+  --pl-title-color: #fff; --pl-title-glow: 2px 0 #ff003c, -2px 0 #00f0ff;
+  --pl-h: 4px; --pl-track: rgb(0 240 255 / .14); --pl-buffer: rgb(123 47 208 / .5);
+  --pl-fill: linear-gradient(90deg, #7b2fd0, #00f0ff); --pl-fill-glow: 0 0 10px rgb(0 240 255 / .55);
+  --pl-thumb-bg: #ff003c; --pl-thumb-r: 0; --pl-thumb-w: .45em; --pl-thumb-h: 1.3em; --pl-thumb-shadow: 0 0 10px #ff003c;
+  --pl-btn-r: 0; --pl-hover-bg: rgb(255 0 60 / .16); --pl-hover-ink: #ff003c;
+  --pl-play-bg: #7b2fd0; --pl-play-ink: #fff; --pl-play-r: 0; --pl-play-hover-bg: #ff003c;
+  --pl-bubble-bg: #0c0c14; --pl-bubble-ink: #00f0ff; --pl-bubble-r: 0; --pl-bubble-border: 1px solid #00f0ff;
+  --pl-marker: #ff003c;
+}
+html:root .videoOsdBottom .osdControls { position: relative; isolation: isolate; margin: 0 1.2em; padding: .9em 1.4em .5em; }
+html:root .videoOsdBottom .osdControls::before {
+  content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+  clip-path: polygon(0 0, calc(100% - 18px) 0, 100% 18px, 100% 100%, 18px 100%, 0 calc(100% - 18px));
+  background:
+    linear-gradient(225deg, transparent 12px, #00f0ff 12px 14px, transparent 14px),
+    linear-gradient(45deg, transparent 12px, #00f0ff 12px 14px, transparent 14px),
+    linear-gradient(#7b2fd0, #7b2fd0) 0 0 / 3px 100% no-repeat,
+    linear-gradient(90deg, rgb(0 240 255 / .5), transparent 60%) 0 0 / 100% 1px no-repeat,
+    rgb(12 12 20 / .88);
+}
+html:root .videoOsdBottom .osdTitle::before {
+  content: "再生中"; display: inline-block; margin-right: .7em; padding: .1em .9em .1em .5em; vertical-align: .15em;
+  background: #7b2fd0; color: #fff; font-size: .6em; letter-spacing: .15em; text-shadow: none;
+  clip-path: polygon(0 0, 100% 0, calc(100% - 7px) 100%, 0 100%); animation: cp-ld-glitch 4.6s steps(1) infinite;
+}
+html:root .videoOsdBottom .btnPause { clip-path: polygon(8px 0, 100% 0, calc(100% - 8px) 100%, 0 100%); padding-inline: .5em !important; }
+/* Up Next: a cut-corner panel with the purple edge bar; Start Now is a slanted purple tag */
+html:root:root {
+  --pl-panel-bg:
+    linear-gradient(225deg, transparent 12px, #00f0ff 12px 14px, transparent 14px),
+    linear-gradient(45deg, transparent 12px, #00f0ff 12px 14px, transparent 14px),
+    linear-gradient(#7b2fd0, #7b2fd0) 0 0 / 3px 100% no-repeat, rgb(12 12 20 / .94);
+  --pl-panel-border: 0; --pl-panel-r: 0; --pl-panel-shadow: none; --pl-time: #ff003c;
+  --pl-next-bg: #7b2fd0; --pl-next-ink: #fff; --pl-skip-ink: #00f0ff; --pl-skip-border: 1px solid #00f0ff; --pl-btn-r2: 0; --pl-btn-case: uppercase;
+  --pl-btn-hover-shadow: 0 0 12px rgb(255 0 60 / .7);
+}
+html:root .upNextDialog { clip-path: polygon(0 0, calc(100% - 18px) 0, 100% 18px, 100% 100%, 18px 100%, 0 calc(100% - 18px)); }
+html:root .upNextDialog .btnStartNow { clip-path: polygon(8px 0, 100% 0, calc(100% - 8px) 100%, 0 100%); padding-inline: 1.4em !important; }
+/* subtitles: the red / cyan colour split from the titles */
+html:root:root { --pl-sub-ink: #eaf7ff; --pl-sub-shadow: 1.5px 0 #ff003c, -1.5px 0 #00f0ff, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000, 0 2px 6px #000; }
+
+/* ---- forms, search and menus: black panels with the purple edge bar, cyan focus, red hover (shared shape: forms-base.css) ---- */
+html:root:root {
+  --fm-panel-bg: linear-gradient(90deg, rgb(0 240 255 / .4), transparent 50%) 0 0 / 100% 1px no-repeat, rgb(12 12 20 / .9);
+  --fm-panel-border: 0; --fm-panel-r: 0; --fm-panel-shadow: inset 3px 0 #7b2fd0, 0 20px 50px -24px #000;
+  --fm-field-bg: #09090f; --fm-field-border: 1px solid rgb(0 240 255 / .3); --fm-r: 0; --fm-field-shadow: inset 3px 0 #7b2fd0;
+  --fm-focus: #00f0ff; --fm-focus-ring: 0 0 12px rgb(0 240 255 / .45);
+  --fm-label: #eaf7ff; --fm-desc: #8197aa; --fm-link: #00f0ff;
+  --fm-check-border: 1px solid rgb(0 240 255 / .6); --fm-check-r: 0; --fm-check-bg: #7b2fd0; --fm-check-ink: #fff; --fm-check-border-on: #00f0ff;
+  --fm-btn-bg: #7b2fd0; --fm-btn-ink: #fff; --fm-btn-r: 0; --fm-btn-case: uppercase; --fm-btn-track: .1em; --fm-btn-hover-shadow: 0 0 14px rgb(255 0 60 / .7);
+  --fm-menu-r: 0; --fm-menu-icon: #00f0ff; --fm-menu-hover: rgb(255 0 60 / .16); --fm-menu-hover-ink: #ff003c;
+}
+html:root .settingsContainer .button-submit { clip-path: polygon(10px 0, 100% 0, calc(100% - 10px) 100%, 0 100%); }
+
+/* the Version / Video / Audio / Subtitles pickers on detail pages go without the purple edge bar */
+html:root .trackSelections { --fm-field-shadow: none; }
+
+/* ---- extras: cut-corner badges, a data bar with a red read head, chromatic rings round the cast, the Guide with a
+   purple edge bar and cut red tags, and a slim purple scrollbar (shared shape: extras-base.css) ---- */
+html:root:root {
+  --ex-badge-bg: #ff003c; --ex-badge-ink: #fff; --ex-badge-r: 0; --ex-badge-shadow: none;
+  --ex-tick-bg: #00f0ff; --ex-tick-ink: #07070b;
+  --ex-prog-h: 3px; --ex-prog-r: 0; --ex-prog-track: rgb(0 240 255 / .14);
+  --ex-prog-fill: linear-gradient(90deg, #7b2fd0, #00f0ff calc(100% - 4px), #ff003c 0); --ex-prog-glow: 0 0 8px rgb(0 240 255 / .55);
+  --ex-cast-ring: 2px solid rgb(0 240 255 / .55); --ex-cast-shadow: -3px 0 0 -1px rgb(255 0 60 / .45), 3px 0 0 -1px rgb(0 240 255 / .45);
+  --ex-cast-hover: #ff003c; --ex-cast-hover-shadow: -4px 0 #ff003c, 4px 0 #00f0ff;
+  --ex-guide-line-color: rgb(0 240 255 / .12); --ex-guide-line: 1px solid rgb(0 240 255 / .3); --ex-guide-time: #bcd6e8; --ex-guide-num: #00f0ff; --ex-guide-today: #ff003c;
+  --ex-now-bg: linear-gradient(90deg, rgb(123 47 208 / .35), rgb(123 47 208 / .06)); --ex-now-shadow: inset 3px 0 #7b2fd0; --ex-cell-hover: rgb(255 0 60 / .2);
+  --ex-tag-bg: #ff003c; --ex-tag-ink: #fff; --ex-tag-r: 0; --ex-tag-new-bg: #00f0ff; --ex-tag-new-ink: #07070b;
+  --ex-sb-w: 8px; --ex-sb-r: 0; --ex-sb-border: 0; --ex-sb-thumb: #7b2fd0; --ex-sb-thumb-hover: #00f0ff; --ex-sb-thumb-flat: #7b2fd0; --ex-sb-track: #09090f;
+}
+html:root :is(.countIndicator, .playedIndicator), html:root .tvguide .guideProgramIndicator {
+  clip-path: polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px));
+}

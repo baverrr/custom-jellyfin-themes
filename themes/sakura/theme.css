@@ -1,0 +1,135 @@
+/* SAKURA (from Homepage's sakura.css) — traditional Japan: washi paper texture, a red sun, seigaiha waves along
+   the bottom, vermilion and indigo, brush-serif titles, a vermilion frame when you point at a card.
+   Homepage's version is cream paper with sumi ink; Jellyfin's interface is built for light-on-dark text, so here
+   it is the night version: sumi-ink paper with cream lettering. (The drifting petals and hanko seal are JavaScript.) */
+@import url("../../dark/theme.css");
+@import url("../_base.css");
+@import url("../loader-base.css"); /* this theme draws its own loading animation */
+@import url("../player-base.css"); /* themed video player controls */
+@import url("../forms-base.css"); /* themed settings forms, search page and menus */
+@import url("../extras-base.css"); /* themed badges, progress bars, cast row, Live TV Guide and scrollbars */
+@import url("tiles/tiles.css"); /* My Media tiles, from ~/media-stack/jellyfin/library-covers/tiles */
+
+html:root:root {
+  --hp-accent: #d23a2a; --hp-accent-2: #6f8fe0; --hp-accent-3: #b8862b; --hp-on-accent: #fffbf2;
+  --hp-bg:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.7 .05' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .96 0 0 0 0 .94 0 0 0 0 .89 0 0 0 .07 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"),
+    radial-gradient(ellipse at 70% 10%, #2e2420, #1f1a17 60%) fixed;
+  --dcs-ink-0: #1a1613; --dcs-ink-1: #1f1a17; --dcs-ink-2: #2a231f; --dcs-ink-3: #3a302a;
+  --dcs-glass: rgb(31 26 23 / .82); --dcs-glass-strong: rgb(26 22 19 / .96);
+  --dcs-hairline: rgb(245 239 227 / .16); --dcs-hairline-strong: rgb(245 239 227 / .35);
+  --dcs-text: #f5efe3; --dcs-text-dim: #ddd3c3; --dcs-text-mute: #b1a493;
+  --dcs-r-xs: 3px; --dcs-r-sm: 3px; --dcs-r-md: 4px; --dcs-r-lg: 6px;
+  --dcs-display: "Noto Serif JP", "Yu Mincho", "Hiragino Mincho ProN", "Shippori Mincho", Georgia, "Times New Roman", serif;
+  --hp-card-border: 1px solid rgb(245 239 227 / .22);
+  --hp-card-shadow: 0 10px 24px -14px rgb(0 0 0 / .8);
+  --hp-card-hover-border: #d23a2a;
+  --hp-card-hover-shadow: 0 0 0 1px #d23a2a, 0 0 0 5px rgb(26 22 19), 0 0 0 6px rgb(210 58 42 / .45);
+  --hp-title-color: #f5efe3;
+}
+html:root :is(.sectionTitle, .sectionTitle a, .sectionTitle-cards) { font-weight: 600 !important; }
+html:root h2.sectionTitle::after { content: ""; display: inline-block; width: .5em; height: .5em; margin-left: .5em; border-radius: 50%; background: #d23a2a; vertical-align: middle; }
+
+/* red sun, top right */
+html:root::before {
+  content: ""; position: fixed; top: 9vh; right: 6vw; width: min(26vw, 300px); aspect-ratio: 1; border-radius: 50%; z-index: -1;
+  background: radial-gradient(circle at 42% 40%, #e2513c, #d23a2a 60%, #b42a1d); opacity: .7;
+}
+/* seigaiha (overlapping wave) band along the bottom */
+html:root::after {
+  content: ""; position: fixed; left: 0; right: 0; bottom: 0; height: 90px; z-index: -1; opacity: .3;
+  background:
+    radial-gradient(circle at 50% 100%, transparent 0 7px, #6f8fe0 7px 9px, transparent 9px 13px, #6f8fe0 13px 15px, transparent 15px 19px, #6f8fe0 19px 21px, transparent 21px) 0 0 / 44px 22px,
+    radial-gradient(circle at 50% 100%, transparent 0 7px, #6f8fe0 7px 9px, transparent 9px 13px, #6f8fe0 13px 15px, transparent 15px 19px, #6f8fe0 19px 21px, transparent 21px) 22px 11px / 44px 22px;
+  -webkit-mask: linear-gradient(transparent, #000 70%); mask: linear-gradient(transparent, #000 70%);
+}
+
+/* loading animation: an ensō — a cream brush circle painted round a red sun in one stroke, left open, then it fades
+   and is painted again — with two cherry petals drifting past (slots: loader-base.css) */
+html:root :is(.mdl-spinner, .docspinner, .MuiCircularProgress-root)::before {
+  border-radius: 50%; transform: rotate(-40deg);
+  background: conic-gradient(rgb(245 239 227 / .25) 0, #f5efe3 calc(var(--hp-ld-a) * .35), #f5efe3 calc(var(--hp-ld-a) - 12deg), rgb(245 239 227 / .55) var(--hp-ld-a), transparent var(--hp-ld-a));
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 7px), #000 calc(100% - 6px), #000 calc(100% - 1.5px), transparent);
+          mask: radial-gradient(farthest-side, transparent calc(100% - 7px), #000 calc(100% - 6px), #000 calc(100% - 1.5px), transparent);
+  animation: sk-ld-enso 2.6s cubic-bezier(.45, 0, .2, 1) infinite;
+}
+html:root :is(.mdl-spinner, .docspinner, .MuiCircularProgress-root)::after {
+  inset: 31%; border-radius: 50%; background: radial-gradient(circle at 42% 40%, #e2513c, #d23a2a 60%, #b42a1d);
+  box-shadow: 0 0 16px rgb(210 58 42 / .45); animation: sk-ld-sun 2.6s ease-in-out infinite;
+}
+html:root :is(.mdl-spinner, .docspinner) > .mdl-spinner__layer:first-child::before,
+html:root :is(.mdl-spinner, .docspinner) > .mdl-spinner__layer:first-child::after {
+  inset: auto; left: 30%; top: 0; width: 10px; height: 7px; border-radius: 100% 0; background: linear-gradient(135deg, #fbd3dd, #f29bb2);
+  animation: sk-ld-petal 3.2s ease-in-out infinite;
+}
+html:root :is(.mdl-spinner, .docspinner) > .mdl-spinner__layer:first-child::after { left: 72%; width: 8px; height: 6px; animation-delay: -1.6s; animation-duration: 3.8s; }
+@keyframes sk-ld-enso { 0% { --hp-ld-a: 0deg; opacity: 1; } 62% { --hp-ld-a: 335deg; opacity: 1; } 84%, 100% { --hp-ld-a: 335deg; opacity: 0; } }
+@keyframes sk-ld-sun { 50% { transform: scale(1.08); } }
+@keyframes sk-ld-petal {
+  0% { transform: translate(-14px, -18px) rotate(0deg); opacity: 0; } 15% { opacity: 1; }
+  50% { transform: translate(10px, 34px) rotate(160deg) scaleY(.5); } 85% { opacity: 1; }
+  100% { transform: translate(-6px, 92px) rotate(320deg); opacity: 0; }
+}
+
+/* ---- video player: a vermilion brush line for the seek bar with a red-sun playhead, a hanko-seal play button,
+   cream paper tooltips and a band of seigaiha waves under the controls (shared shape: player-base.css) ---- */
+html:root:root {
+  --pl-shade: linear-gradient(0deg, #1a1613 0%, rgb(26 22 19 / .8) 45%, transparent);
+  --pl-ink: #f5efe3; --pl-icon: #f5efe3; --pl-time: #ddd3c3;
+  --pl-time-font: "Noto Serif JP", "Yu Mincho", "Hiragino Mincho ProN", Georgia, serif; --pl-title-color: #f5efe3;
+  --pl-h: 3px; --pl-r: 3px; --pl-fill-r: 3px; --pl-track: rgb(245 239 227 / .22); --pl-buffer: rgb(245 239 227 / .32);
+  --pl-fill: linear-gradient(90deg, rgb(210 58 42 / .5), #d23a2a 25%, #e2513c);
+  --pl-thumb-bg: radial-gradient(circle at 42% 40%, #e2513c, #d23a2a 60%, #b42a1d); --pl-thumb-w: 1.15em; --pl-thumb-h: 1.15em;
+  --pl-thumb-shadow: 0 0 0 3px #1a1613, 0 0 0 4px rgb(245 239 227 / .5);
+  --pl-hover-bg: rgb(210 58 42 / .2); --pl-hover-ink: #f5efe3;
+  --pl-play-bg: #d23a2a; --pl-play-ink: #fffbf2; --pl-play-r: 4px; --pl-play-shadow: inset 0 0 0 2px rgb(255 251 242 / .35); --pl-play-hover-bg: #e2513c;
+  --pl-bubble-bg: #f5efe3; --pl-bubble-ink: #1a1613; --pl-bubble-border: 0; --pl-bubble-r: 3px;
+  --pl-marker: #f5efe3;
+}
+html:root .videoOsdBottom .osdTitle { font-weight: 600; }
+html:root .videoOsdBottom .osdTitle::after { content: ""; display: inline-block; width: .45em; height: .45em; margin-left: .5em; border-radius: 50%; background: #d23a2a; vertical-align: middle; }
+html:root .videoOsdBottom .btnPause { rotate: -4deg; }
+html:root .videoOsdBottom::before {
+  content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 70px; z-index: -1; pointer-events: none; opacity: .28;
+  background:
+    radial-gradient(circle at 50% 100%, transparent 0 7px, #6f8fe0 7px 9px, transparent 9px 13px, #6f8fe0 13px 15px, transparent 15px 19px, #6f8fe0 19px 21px, transparent 21px) 0 0 / 44px 22px,
+    radial-gradient(circle at 50% 100%, transparent 0 7px, #6f8fe0 7px 9px, transparent 9px 13px, #6f8fe0 13px 15px, transparent 15px 19px, #6f8fe0 19px 21px, transparent 21px) 22px 11px / 44px 22px;
+  -webkit-mask: linear-gradient(transparent, #000 70%); mask: linear-gradient(transparent, #000 70%);
+}
+/* Up Next: a paper slip with a vermilion edge; Start Now is a hanko seal */
+html:root:root {
+  --pl-panel-bg: rgb(31 26 23 / .94); --pl-panel-border: 1px solid rgb(245 239 227 / .22); --pl-panel-r: 4px;
+  --pl-panel-shadow: inset 3px 0 #d23a2a, 0 14px 30px -14px rgb(0 0 0 / .9); --pl-time: #e2513c;
+  --pl-next-bg: #d23a2a; --pl-next-ink: #fffbf2; --pl-next-shadow: inset 0 0 0 2px rgb(255 251 242 / .35);
+  --pl-skip-ink: #f5efe3; --pl-skip-border: 1px solid rgb(245 239 227 / .35); --pl-btn-r2: 3px; --pl-btn-hover-shadow: 0 0 0 2px rgb(210 58 42 / .5);
+}
+/* subtitles: cream brush-serif lettering */
+html:root:root { --pl-sub-font: "Noto Serif JP", "Yu Mincho", "Hiragino Mincho ProN", Georgia, serif; --pl-sub-ink: #f5efe3;
+  --pl-sub-shadow: -1px -1px 0 #1a1613, 1px -1px 0 #1a1613, -1px 1px 0 #1a1613, 1px 1px 0 #1a1613, 0 2px 6px #000; }
+
+/* ---- forms, search and menus: sumi-ink panels with a vermilion edge, hanko-red checkboxes (shared shape: forms-base.css) ---- */
+html:root:root {
+  --fm-panel-bg: rgb(31 26 23 / .86); --fm-panel-border: 1px solid rgb(245 239 227 / .16); --fm-panel-r: 6px;
+  --fm-panel-shadow: inset 3px 0 #d23a2a, 0 20px 50px -24px #000;
+  --fm-field-bg: rgb(26 22 19 / .9); --fm-field-border: 1px solid rgb(245 239 227 / .25); --fm-r: 3px;
+  --fm-focus: #d23a2a; --fm-focus-ring: 0 0 0 2px rgb(210 58 42 / .4);
+  --fm-label: #f5efe3; --fm-desc: #b1a493; --fm-link: #f5efe3;
+  --fm-check-border: 1.5px solid rgb(245 239 227 / .5); --fm-check-r: 2px; --fm-check-bg: #d23a2a; --fm-check-ink: #fffbf2;
+  --fm-btn-bg: #d23a2a; --fm-btn-ink: #fffbf2; --fm-btn-r: 3px; --fm-btn-hover-shadow: 0 0 0 2px rgb(210 58 42 / .5);
+  --fm-menu-r: 4px; --fm-menu-icon: #d23a2a; --fm-menu-hover: rgb(210 58 42 / .2); --fm-menu-hover-ink: #f5efe3;
+}
+
+/* ---- extras: hanko-red seal badges, a fine vermilion thread for progress, ink-washed rings round the cast, a
+   sumi-ink Guide with a vermilion edge, and a slim vermilion scrollbar (shared shape: extras-base.css) ---- */
+html:root:root {
+  --ex-badge-bg: #d23a2a; --ex-badge-ink: #fffbf2; --ex-badge-r: 4px; --ex-badge-shadow: 0 0 0 2px rgb(255 251 242 / .85), 0 2px 6px rgb(0 0 0 / .5);
+  --ex-tick-bg: #d23a2a; --ex-tick-ink: #fffbf2;
+  --ex-prog-h: 3px; --ex-prog-r: 0; --ex-prog-track: rgb(245 239 227 / .18); --ex-prog-fill: #d23a2a; --ex-prog-glow: none;
+  --ex-cast-ring: 2px solid rgb(245 239 227 / .55); --ex-cast-shadow: 0 10px 24px -12px rgb(0 0 0 / .9); --ex-cast-hover: #d23a2a; --ex-cast-hover-shadow: 0 0 0 4px rgb(210 58 42 / .25);
+  --ex-cast-role-style: italic;
+  --ex-guide-line-color: rgb(245 239 227 / .12); --ex-guide-time: #ddd3c3; --ex-guide-num: #d23a2a; --ex-guide-today: #d23a2a;
+  --ex-now-bg: rgb(245 239 227 / .07); --ex-now-shadow: inset 3px 0 #d23a2a; --ex-cell-hover: rgb(210 58 42 / .2);
+  --ex-tag-bg: #d23a2a; --ex-tag-ink: #fffbf2; --ex-tag-r: 2px; --ex-tag-new-bg: #b8862b; --ex-tag-new-ink: #fffbf2;
+  --ex-sb-w: 8px; --ex-sb-r: 2px; --ex-sb-border: 1px solid transparent; --ex-sb-thumb: rgb(210 58 42 / .8); --ex-sb-thumb-hover: #d23a2a; --ex-sb-thumb-flat: #d23a2a;
+}
+html:root .countIndicator, html:root .playedIndicator { transform: rotate(-6deg); }

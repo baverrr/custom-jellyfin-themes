@@ -1,0 +1,164 @@
+/* MISSION HUD (from Homepage's hud.css) — a spacecraft tactical display in amber and cyan: a radar sweep turning over
+   range rings and a crosshair, amber dot grid, monospace readouts, square bracketed targets that light cyan when
+   pointed at. (The lock-on reticle and telemetry ticker are Homepage JavaScript.) */
+@import url("../../dark/theme.css");
+@import url("../_base.css");
+@import url("../loader-base.css"); /* this theme draws its own loading animation */
+@import url("../player-base.css"); /* themed video player controls */
+@import url("../forms-base.css"); /* themed settings forms, search page and menus */
+@import url("../extras-base.css"); /* themed badges, progress bars, cast row, Live TV Guide and scrollbars */
+@import url("tiles/tiles.css"); /* My Media tiles, from ~/media-stack/jellyfin/library-covers/tiles */
+
+html:root:root {
+  --hp-accent: #4de1ff; --hp-accent-2: #ffb000; --hp-accent-3: #ff7ad9; --hp-on-accent: #0a0804;
+  --hp-bg: radial-gradient(rgb(255 176 0 / .1) 1px, transparent 1.5px) 0 0 / 24px 24px, radial-gradient(ellipse at center, #120d05, #050402 75%) fixed;
+  --dcs-ink-0: #050402; --dcs-ink-1: #0a0804; --dcs-ink-2: #120d05; --dcs-ink-3: #22180a;
+  --dcs-glass: rgb(10 8 4 / .82); --dcs-glass-strong: rgb(10 8 4 / .96);
+  --dcs-hairline: rgb(255 176 0 / .22); --dcs-hairline-strong: rgb(255 176 0 / .55);
+  --dcs-text: #ffd27a; --dcs-text-dim: #f0b95e; --dcs-text-mute: #b0863c;
+  --dcs-r-xs: 0; --dcs-r-sm: 0; --dcs-r-md: 0; --dcs-r-lg: 0; --dcs-r-pill: 0;
+  --dcs-display: "JetBrains Mono", ui-monospace, monospace;
+  --hp-card-border: 1px solid rgb(255 176 0 / .45);
+  --hp-card-shadow: 0 0 0 4px rgb(5 4 2), 0 0 0 5px rgb(255 176 0 / .18);
+  --hp-card-hover-border: #4de1ff;
+  --hp-card-hover-shadow: 0 0 0 4px rgb(5 4 2), 0 0 0 5px #4de1ff, 0 0 26px rgb(77 225 255 / .45);
+  --hp-title-color: #ffb000; --hp-title-case: uppercase; --hp-title-track: .2em; --hp-title-glow: 0 0 8px rgb(255 176 0 / .45);
+}
+html:root body, html:root body :is(div, span, a, p, h1, h2, h3, h4, button, input, select, textarea, label, bdi):not(.material-icons):not(.material-symbols-rounded) {
+  font-family: "JetBrains Mono", ui-monospace, monospace !important;
+}
+html:root h2.sectionTitle::before, html:root .sectionTitle-cards::before { content: "▸ " !important; color: #4de1ff !important; position: static !important; display: inline !important; width: auto !important; height: auto !important; inset: auto !important; background: none !important; margin: 0 !important; transform: none !important; }
+
+/* radar sweep */
+html:root::before {
+  content: ""; position: fixed; left: 50%; top: 50%; width: 130vmax; height: 130vmax; margin: -65vmax 0 0 -65vmax; z-index: -1; border-radius: 50%;
+  background: conic-gradient(from 0deg, rgb(255 176 0 / .18), rgb(255 176 0 / .05) 40deg, transparent 75deg);
+  animation: hp-sweep 7s linear infinite;
+}
+/* range rings + crosshair */
+html:root::after {
+  content: ""; position: fixed; inset: 0; z-index: -1;
+  background:
+    repeating-radial-gradient(circle at 50% 50%, transparent 0 calc(16vmin - 1px), rgb(255 176 0 / .12) calc(16vmin - 1px) 16vmin),
+    linear-gradient(rgb(255 176 0 / .12), rgb(255 176 0 / .12)) 50% 0 / 1px 100% no-repeat,
+    linear-gradient(rgb(255 176 0 / .12), rgb(255 176 0 / .12)) 0 50% / 100% 1px no-repeat;
+}
+@keyframes hp-sweep { to { rotate: 360deg; } }
+
+/* loading animation: a radar scope — amber range rings and crosshair, a sweep turning over them, two cyan contacts
+   lighting up as the sweep passes, "SCANNING" readout underneath (slots: loader-base.css) */
+html:root :is(.mdl-spinner, .docspinner, .MuiCircularProgress-root) {
+  border-radius: 50%;
+  background: radial-gradient(circle closest-side, transparent 0 32%, rgb(255 176 0 / .35) 32.5% 34%, transparent 34.5% 65%, rgb(255 176 0 / .35) 65.5% 67%, transparent 67.5% 95%, rgb(255 176 0 / .8) 95.5% 99%, transparent 99.5%),
+              linear-gradient(rgb(255 176 0 / .3), rgb(255 176 0 / .3)) 50% 0 / 1px 100% no-repeat,
+              linear-gradient(rgb(255 176 0 / .3), rgb(255 176 0 / .3)) 0 50% / 100% 1px no-repeat,
+              radial-gradient(circle closest-side, rgb(10 8 4 / .85) 99%, transparent 100%) !important;
+  box-shadow: 0 0 18px rgb(255 176 0 / .25);
+}
+html:root :is(.mdl-spinner, .docspinner, .MuiCircularProgress-root)::before {
+  border-radius: 50%; background: conic-gradient(from 0deg, transparent 0 280deg, rgb(255 176 0 / .08) 300deg, rgb(255 176 0 / .6) 359deg, #ffd27a 360deg);
+  animation: hud-ld-sweep 2s linear infinite;
+}
+html:root :is(.mdl-spinner, .docspinner, .MuiCircularProgress-root)::after {
+  background: radial-gradient(circle at 70% 28%, #fff 0 1.5px, #4de1ff 2.5px, transparent 5px);
+  filter: drop-shadow(0 0 4px #4de1ff); animation: hud-ld-blip 2s linear infinite;
+}
+html:root :is(.mdl-spinner, .docspinner) > .mdl-spinner__layer:first-child::before {
+  background: radial-gradient(circle at 34% 66%, #fff 0 1.5px, #4de1ff 2.5px, transparent 5px);
+  filter: drop-shadow(0 0 4px #4de1ff); animation: hud-ld-blip 2s linear infinite -1s; /* this one is at ~225° */
+}
+html:root :is(.mdl-spinner, .docspinner) > .mdl-spinner__layer:first-child::after {
+  content: "\25B8 SCANNING"; inset: auto; left: 50%; top: calc(100% + 12px); transform: translateX(-50%); white-space: nowrap;
+  font: 600 10px/1 "JetBrains Mono", monospace; letter-spacing: .22em; color: #ffb000; text-shadow: 0 0 6px rgb(255 176 0 / .5);
+  animation: hud-ld-text 1s steps(1) infinite;
+}
+@keyframes hud-ld-sweep { to { transform: rotate(360deg); } }
+/* the first contact sits at ~45°, so the sweep (starting at 0°, clockwise) reaches it 1/8 of the way round */
+@keyframes hud-ld-blip { 0%, 11% { opacity: 0; } 13% { opacity: 1; } 70%, 100% { opacity: 0; } }
+@keyframes hud-ld-text { 50% { opacity: .4; } }
+
+/* ---- video player: a targeting display — corner brackets round the controls, dashed amber range bar with cyan
+   segments, a cyan cursor for the playhead, T+ mission clock, a blinking ● PLAYBACK flag (shared shape: player-base.css) ---- */
+html:root:root {
+  --pl-shade: linear-gradient(0deg, #050402 0%, rgb(5 4 2 / .85) 45%, transparent);
+  --pl-ink: #ffd27a; --pl-icon: #ffb000; --pl-icon-glow: 0 0 6px rgb(255 176 0 / .5);
+  --pl-time: #4de1ff; --pl-time-glow: 0 0 6px rgb(77 225 255 / .6);
+  --pl-h: .45em;
+  --pl-track: repeating-linear-gradient(90deg, rgb(255 176 0 / .3) 0 6px, transparent 6px 8px);
+  --pl-buffer: repeating-linear-gradient(90deg, rgb(255 176 0 / .5) 0 6px, transparent 6px 8px);
+  --pl-fill: repeating-linear-gradient(90deg, #4de1ff 0 6px, transparent 6px 8px);
+  --pl-thumb-bg: #4de1ff; --pl-thumb-r: 0; --pl-thumb-w: 3px; --pl-thumb-h: 1.5em; --pl-thumb-shadow: 0 0 8px #4de1ff, 0 0 18px rgb(77 225 255 / .6);
+  --pl-btn-r: 0; --pl-hover-bg: rgb(77 225 255 / .1); --pl-hover-ink: #4de1ff; --pl-hover-shadow: inset 0 0 0 1px #4de1ff;
+  --pl-play-r: 0; --pl-play-border: 1px solid rgb(255 176 0 / .6); --pl-play-shadow: 0 0 0 3px #050402, 0 0 0 4px rgb(255 176 0 / .25);
+  --pl-play-hover-bg: rgb(77 225 255 / .1); --pl-play-hover-ink: #4de1ff;
+  --pl-play-hover-shadow: 0 0 0 3px #050402, 0 0 0 4px #4de1ff, 0 0 18px rgb(77 225 255 / .45);
+  --pl-bubble-bg: #0a0804; --pl-bubble-ink: #4de1ff; --pl-bubble-r: 0; --pl-bubble-border: 1px solid #4de1ff;
+  --pl-marker: #4de1ff; --pl-marker-dim: rgb(255 176 0 / .5);
+}
+html:root .videoOsdBottom .osdControls { position: relative; margin: 0 1.2em; padding: .9em 1.4em .5em; }
+html:root .videoOsdBottom .osdControls::before {
+  content: ""; position: absolute; inset: 0; pointer-events: none; --c: #ffb000;
+  background:
+    linear-gradient(var(--c), var(--c)) 0 0 / 16px 1.5px no-repeat, linear-gradient(var(--c), var(--c)) 0 0 / 1.5px 16px no-repeat,
+    linear-gradient(var(--c), var(--c)) 100% 0 / 16px 1.5px no-repeat, linear-gradient(var(--c), var(--c)) 100% 0 / 1.5px 16px no-repeat,
+    linear-gradient(var(--c), var(--c)) 0 100% / 16px 1.5px no-repeat, linear-gradient(var(--c), var(--c)) 0 100% / 1.5px 16px no-repeat,
+    linear-gradient(var(--c), var(--c)) 100% 100% / 16px 1.5px no-repeat, linear-gradient(var(--c), var(--c)) 100% 100% / 1.5px 16px no-repeat;
+}
+html:root .videoOsdBottom .osdTitle::before { content: "▸ "; color: #4de1ff; }
+html:root .videoOsdBottom .osdPositionText::before { content: "T+\00a0"; color: #b0863c; }
+html:root .videoOsdBottom .osdMainTextContainer::after {
+  content: "● PLAYBACK"; margin-left: auto; color: #ff7ad9; font-size: .72em; letter-spacing: .25em; text-shadow: 0 0 6px rgb(255 122 217 / .6);
+  animation: hud-pl-blink 1.6s steps(1) infinite;
+}
+@keyframes hud-pl-blink { 60% { opacity: .25; } }
+/* Up Next: a bracketed target box with an amber readout */
+html:root:root {
+  --pl-panel-bg:
+    linear-gradient(#ffb000, #ffb000) 0 0 / 16px 1.5px no-repeat, linear-gradient(#ffb000, #ffb000) 0 0 / 1.5px 16px no-repeat,
+    linear-gradient(#ffb000, #ffb000) 100% 0 / 16px 1.5px no-repeat, linear-gradient(#ffb000, #ffb000) 100% 0 / 1.5px 16px no-repeat,
+    linear-gradient(#ffb000, #ffb000) 0 100% / 16px 1.5px no-repeat, linear-gradient(#ffb000, #ffb000) 0 100% / 1.5px 16px no-repeat,
+    linear-gradient(#ffb000, #ffb000) 100% 100% / 16px 1.5px no-repeat, linear-gradient(#ffb000, #ffb000) 100% 100% / 1.5px 16px no-repeat,
+    rgb(10 8 4 / .92);
+  --pl-panel-border: 0; --pl-panel-r: 0; --pl-panel-shadow: none; --pl-title-color: #ffb000;
+  --pl-next-bg: rgb(77 225 255 / .12); --pl-next-ink: #4de1ff; --pl-next-border: 1px solid #4de1ff;
+  --pl-skip-ink: #ffb000; --pl-skip-border: 1px solid rgb(255 176 0 / .55); --pl-btn-r2: 0; --pl-btn-case: uppercase;
+  --pl-btn-hover-shadow: 0 0 14px rgb(77 225 255 / .5);
+}
+html:root .upNextDialog .upNextDialog-nextVideoText::before { content: "▸ "; color: #4de1ff; }
+/* subtitles: amber monospace readout */
+html:root:root { --pl-sub-font: "JetBrains Mono", ui-monospace, monospace; --pl-sub-ink: #ffd27a; --pl-sub-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000, 0 0 8px rgb(255 176 0 / .55); }
+
+/* ---- forms, search and menus: bracketed panels, amber fields that lock on cyan when focused (shared shape: forms-base.css) ---- */
+html:root:root {
+  --fm-panel-bg:
+    linear-gradient(#ffb000, #ffb000) 0 0 / 18px 1.5px no-repeat, linear-gradient(#ffb000, #ffb000) 0 0 / 1.5px 18px no-repeat,
+    linear-gradient(#ffb000, #ffb000) 100% 0 / 18px 1.5px no-repeat, linear-gradient(#ffb000, #ffb000) 100% 0 / 1.5px 18px no-repeat,
+    linear-gradient(#ffb000, #ffb000) 0 100% / 18px 1.5px no-repeat, linear-gradient(#ffb000, #ffb000) 0 100% / 1.5px 18px no-repeat,
+    linear-gradient(#ffb000, #ffb000) 100% 100% / 18px 1.5px no-repeat, linear-gradient(#ffb000, #ffb000) 100% 100% / 1.5px 18px no-repeat,
+    rgb(10 8 4 / .86);
+  --fm-panel-border: 0; --fm-panel-r: 0;
+  --fm-field-bg: rgb(5 4 2 / .9); --fm-field-border: 1px solid rgb(255 176 0 / .45); --fm-r: 0;
+  --fm-focus: #4de1ff; --fm-focus-ring: 0 0 0 1px #4de1ff, 0 0 14px rgb(77 225 255 / .35);
+  --fm-label: #ffd27a; --fm-desc: #b0863c; --fm-link: #4de1ff;
+  --fm-check-border: 1px solid rgb(255 176 0 / .7); --fm-check-r: 0; --fm-check-bg: rgb(77 225 255 / .15); --fm-check-ink: #4de1ff; --fm-check-border-on: #4de1ff;
+  --fm-check-glow: 0 0 10px rgb(77 225 255 / .45);
+  --fm-btn-bg: rgb(77 225 255 / .12); --fm-btn-ink: #4de1ff; --fm-btn-border: 1px solid #4de1ff; --fm-btn-r: 0; --fm-btn-case: uppercase; --fm-btn-track: .2em;
+  --fm-menu-r: 0; --fm-menu-icon: #ffb000; --fm-menu-hover: rgb(77 225 255 / .1); --fm-menu-hover-ink: #4de1ff;
+}
+
+/* ---- extras: bracketed amber readouts, a dashed telemetry bar, targeting rings round the cast, the Guide as a
+   flight schedule with a cyan "now" lock, and a thin amber scrollbar (shared shape: extras-base.css) ---- */
+html:root:root {
+  --ex-badge-bg: rgb(5 4 2 / .9); --ex-badge-ink: #ffb000; --ex-badge-border: 1px solid #ffb000; --ex-badge-r: 0; --ex-badge-shadow: 0 0 8px rgb(255 176 0 / .35);
+  --ex-tick-bg: rgb(5 4 2 / .9); --ex-tick-ink: #4de1ff;
+  --ex-prog-h: 3px; --ex-prog-r: 0; --ex-prog-track: rgb(255 176 0 / .14);
+  --ex-prog-fill: repeating-linear-gradient(90deg, #ffb000 0 5px, transparent 5px 7px); --ex-prog-glow: none;
+  --ex-cast-ring: 1px solid rgb(255 176 0 / .7); --ex-cast-shadow: 0 0 0 5px rgb(5 4 2 / .55), 0 0 0 6px rgb(255 176 0 / .3);
+  --ex-cast-hover: #4de1ff; --ex-cast-hover-shadow: 0 0 0 5px rgb(5 4 2 / .55), 0 0 0 6px #4de1ff, 0 0 18px rgb(77 225 255 / .45);
+  --ex-cast-name: #ffd27a; --ex-cast-role: #b0863c;
+  --ex-guide-line-color: rgb(255 176 0 / .14); --ex-guide-line: 1px solid rgb(255 176 0 / .35); --ex-guide-time: #ffd27a; --ex-guide-num: #4de1ff; --ex-guide-today: #4de1ff;
+  --ex-guide-glow: 0 0 6px rgb(255 176 0 / .4);
+  --ex-now-bg: rgb(77 225 255 / .08); --ex-now-shadow: inset 2px 0 #4de1ff, inset 0 0 0 1px rgb(77 225 255 / .25); --ex-cell-hover: rgb(255 176 0 / .16);
+  --ex-tag-bg: transparent; --ex-tag-ink: #ffb000; --ex-tag-border: 1px solid #ffb000; --ex-tag-r: 0; --ex-tag-new-bg: transparent; --ex-tag-new-ink: #4de1ff;
+  --ex-sb-w: 6px; --ex-sb-r: 0; --ex-sb-border: 0; --ex-sb-thumb: rgb(255 176 0 / .7); --ex-sb-thumb-hover: #4de1ff; --ex-sb-thumb-flat: #ffb000;
+}

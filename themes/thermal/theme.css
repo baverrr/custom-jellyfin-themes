@@ -1,0 +1,127 @@
+/* THERMAL VISION (from Homepage's thermal.css) — your server through a thermal camera: an "ironbow" heat field
+   drifting behind the page, a temperature scale on the right edge, cards that radiate heat from their edges and go
+   white-hot when pointed at. (Homepage's live heat simulation and °C probe are JavaScript; the field here is CSS.) */
+@import url("../../dark/theme.css");
+@import url("../_base.css");
+@import url("../loader-base.css"); /* this theme draws its own loading animation */
+@import url("../player-base.css"); /* themed video player controls */
+@import url("../forms-base.css"); /* themed settings forms, search page and menus */
+@import url("../extras-base.css"); /* themed badges, progress bars, cast row, Live TV Guide and scrollbars */
+@import url("tiles/tiles.css"); /* My Media tiles, from ~/media-stack/jellyfin/library-covers/tiles */
+
+html:root:root {
+  --hp-accent: #ffcc33; --hp-accent-2: #ff3d6e; --hp-accent-3: #f55214; --hp-on-accent: #1a0030;
+  --hp-bg: #0a001a;
+  --dcs-ink-0: #0a001a; --dcs-ink-1: #12002a; --dcs-ink-2: #1c042c; --dcs-ink-3: #2a0640;
+  --dcs-glass: rgb(10 0 24 / .74); --dcs-glass-strong: rgb(12 0 26 / .95);
+  --dcs-hairline: rgb(255 170 60 / .24); --dcs-hairline-strong: rgb(255 200 90 / .55);
+  --dcs-text: #fff6e6; --dcs-text-dim: #ffdcb0; --dcs-text-mute: #d4a8e6;
+  --dcs-r-xs: 6px; --dcs-r-sm: 6px; --dcs-r-md: 10px; --dcs-r-lg: 14px;
+  --hp-card-border: 1px solid rgb(255 170 60 / .45);
+  --hp-card-shadow: 0 0 18px -4px rgb(245 82 20 / .55), 0 0 40px -14px rgb(200 20 92 / .6);
+  --hp-card-hover-border: #fff0a0;
+  --hp-card-hover-shadow: 0 0 0 2px #fff0a0, 0 0 26px #ffaa00, 0 0 60px -10px #f55214;
+  --hp-title-color: #ffcc33; --hp-title-glow: 0 0 14px rgb(255 140 0 / .5);
+}
+/* the heat field: ironbow blobs drifting */
+html:root::before {
+  content: ""; position: fixed; inset: -15vh -10vw; z-index: -1; filter: blur(60px);
+  background:
+    radial-gradient(circle at 25% 35%, #c8145c 0 6vmax, #76008c 12vmax, transparent 20vmax),
+    radial-gradient(circle at 72% 62%, #f55214 0 5vmax, #c8145c 10vmax, transparent 18vmax),
+    radial-gradient(circle at 55% 20%, #ffaa00 0 2vmax, #f55214 6vmax, transparent 12vmax),
+    radial-gradient(circle at 18% 82%, #2a0060 0 8vmax, transparent 16vmax);
+  opacity: .6; animation: hp-heat 40s ease-in-out infinite alternate;
+}
+/* temperature scale bar, right edge */
+html:root body::before {
+  content: "40°\A\A\A\A\A\A\A\A\A19°"; white-space: pre; position: fixed; right: 14px; top: 50%; translate: 0 -50%; z-index: 2; pointer-events: none;
+  width: 34px; padding: 4px 0 4px 18px; font: 600 10px/1.15 "JetBrains Mono", monospace; color: #fff; text-shadow: 0 0 3px #000;
+  background: linear-gradient(0deg, #0a001a, #2a0060 18%, #76008c 35%, #c8145c 50%, #f55214 65%, #ffaa00 80%, #ffec60 92%, #fffff0) 0 0 / 12px 100% no-repeat;
+}
+@keyframes hp-heat { from { transform: translate(-3vw, 2vh) scale(1); } to { transform: translate(3vw, -3vh) scale(1.08); } }
+
+/* loading animation: a thermal camera's view — an ironbow ring spinning round a hot core that pulses to white-hot,
+   white reticle corners, and a temperature readout ticking underneath (slots: loader-base.css) */
+html:root :is(.mdl-spinner, .docspinner, .MuiCircularProgress-root) {
+  background: linear-gradient(#fff, #fff) 0 0 / 14% 2px no-repeat, linear-gradient(#fff, #fff) 0 0 / 2px 14% no-repeat,
+              linear-gradient(#fff, #fff) 100% 0 / 14% 2px no-repeat, linear-gradient(#fff, #fff) 100% 0 / 2px 14% no-repeat,
+              linear-gradient(#fff, #fff) 0 100% / 14% 2px no-repeat, linear-gradient(#fff, #fff) 0 100% / 2px 14% no-repeat,
+              linear-gradient(#fff, #fff) 100% 100% / 14% 2px no-repeat, linear-gradient(#fff, #fff) 100% 100% / 2px 14% no-repeat !important;
+}
+html:root :is(.mdl-spinner, .docspinner, .MuiCircularProgress-root)::before {
+  inset: 12%; border-radius: 50%; filter: blur(.6px) drop-shadow(0 0 6px #f55214);
+  background: conic-gradient(from var(--hp-ld-a), transparent 0 10%, #2a0060 22%, #76008c 36%, #c8145c 50%, #f55214 64%, #ffaa00 78%, #ffec60 90%, #fffff0 100%);
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 7px), #000 calc(100% - 6px)); mask: radial-gradient(farthest-side, transparent calc(100% - 7px), #000 calc(100% - 6px));
+  animation: th-ld-spin 1.3s linear infinite;
+}
+html:root :is(.mdl-spinner, .docspinner, .MuiCircularProgress-root)::after {
+  inset: 33%; border-radius: 50%; filter: blur(1.5px);
+  background: radial-gradient(circle, #fffff0 0 14%, #ffec60 28%, #ffaa00 42%, #f55214 58%, #c8145c 74%, transparent 78%);
+  animation: th-ld-core 1.3s ease-in-out infinite;
+}
+html:root :is(.mdl-spinner, .docspinner) > .mdl-spinner__layer:first-child::before {
+  content: "31.6 \00B0 C"; inset: auto; left: 50%; top: calc(100% + 10px); transform: translateX(-50%); white-space: nowrap;
+  padding: 2px 6px; background: rgb(0 0 0 / .6); border: 1px solid rgb(255 255 255 / .5);
+  font: 700 10px/1.3 "JetBrains Mono", monospace; color: #fff; animation: th-ld-read 2.6s steps(1) infinite;
+}
+@keyframes th-ld-spin { to { --hp-ld-a: 360deg; } }
+@keyframes th-ld-core { 0%, 100% { transform: scale(.7); filter: blur(1.5px) brightness(.8); } 50% { transform: scale(1.1); filter: blur(1px) brightness(1.25); } }
+@keyframes th-ld-read { 0% { content: "31.6 \00B0 C"; } 20% { content: "34.2 \00B0 C"; } 40% { content: "37.9 \00B0 C"; } 60% { content: "39.4 \00B0 C"; } 80% { content: "35.1 \00B0 C"; } }
+
+/* ---- video player: the seek bar is the ironbow temperature scale, lit up to the playhead and cold after it, with a
+   white-hot playhead and a glowing hot-core play button (shared shape: player-base.css) ---- */
+html:root:root {
+  --pl-shade: linear-gradient(0deg, #0a001a 0%, rgb(10 0 26 / .8) 45%, transparent);
+  --pl-ink: #fff6e6; --pl-icon: #ffdcb0; --pl-time: #ffcc33; --pl-time-glow: 0 0 8px rgb(255 140 0 / .5);
+  --pl-h: .4em; --pl-r: .2em;
+  --pl-track: linear-gradient(90deg, #2a0060, #76008c 20%, #c8145c 40%, #f55214 60%, #ffaa00 78%, #ffec60 90%, #fffff0);
+  /* the played part is see-through, its shadow dims the rest of the scale (the bar clips it) */
+  --pl-buffer: transparent; --pl-fill: transparent; --pl-fill-glow: 0 0 0 100vw rgb(10 0 26 / .72);
+  --pl-thumb-bg: #fffff0; --pl-thumb-w: 1em; --pl-thumb-h: 1em; --pl-thumb-shadow: 0 0 6px #fff0a0, 0 0 16px #ffaa00, 0 0 30px #f55214;
+  --pl-hover-bg: rgb(255 170 0 / .16); --pl-hover-ink: #fff0a0; --pl-hover-shadow: 0 0 18px -2px #ffaa00;
+  --pl-play-bg: radial-gradient(circle, #fffff0, #ffec60 30%, #ffaa00 55%, #f55214 80%, #c8145c); --pl-play-ink: #1a0030;
+  --pl-play-shadow: 0 0 18px -2px #f55214; --pl-play-hover-shadow: 0 0 0 2px #fff0a0, 0 0 26px #ffaa00, 0 0 60px -10px #f55214;
+  --pl-bubble-bg: rgb(12 0 26 / .95); --pl-bubble-ink: #ffcc33; --pl-bubble-border: 1px solid rgb(255 200 90 / .55); --pl-bubble-r: 6px;
+  --pl-marker: #fffff0; --pl-marker-dim: rgb(255 220 176 / .4);
+}
+html:root .videoOsdBottom .btnPause { animation: th-pl-heat 2.6s ease-in-out infinite; }
+@keyframes th-pl-heat { 50% { box-shadow: 0 0 28px 2px #ffaa00, 0 0 50px -8px #c8145c; } }
+/* Up Next: a card radiating heat from its edges; Start Now is white-hot */
+html:root:root {
+  --pl-panel-bg: rgb(12 0 26 / .94); --pl-panel-border: 1px solid rgb(255 170 60 / .5); --pl-panel-r: 14px;
+  --pl-panel-shadow: 0 0 18px -4px rgb(245 82 20 / .6), 0 0 40px -14px rgb(200 20 92 / .7);
+  --pl-next-bg: radial-gradient(circle at 50% 120%, #ffaa00, #ffec60 45%, #fffff0); --pl-next-ink: #1a0030; --pl-next-shadow: 0 0 16px -2px #ffaa00;
+  --pl-skip-ink: #ffdcb0; --pl-skip-border: 1px solid rgb(255 200 90 / .55); --pl-btn-r2: 10px; --pl-btn-hover-shadow: 0 0 0 2px #fff0a0, 0 0 22px #ffaa00;
+}
+/* subtitles: white-hot lettering with a heat glow */
+html:root:root { --pl-sub-ink: #fff6e6; --pl-sub-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000, 0 0 8px rgb(255 170 0 / .6), 0 0 16px rgb(245 82 20 / .45); }
+
+/* ---- forms, search and menus: panels radiating heat, fields that glow yellow-hot when focused (shared shape: forms-base.css) ---- */
+html:root:root {
+  --fm-panel-bg: rgb(10 0 24 / .8); --fm-panel-border: 1px solid rgb(255 170 60 / .35); --fm-panel-r: 14px;
+  --fm-panel-shadow: 0 0 22px -6px rgb(245 82 20 / .5), 0 0 50px -20px rgb(200 20 92 / .6);
+  --fm-field-bg: rgb(12 0 26 / .88); --fm-field-border: 1px solid rgb(255 170 60 / .4); --fm-r: 8px;
+  --fm-focus: #ffcc33; --fm-focus-ring: 0 0 0 1px #fff0a0, 0 0 16px #ffaa00;
+  --fm-label: #fff6e6; --fm-desc: #d4a8e6; --fm-link: #ffcc33;
+  --fm-check-border: 1.5px solid rgb(255 170 60 / .6); --fm-check-r: 4px;
+  --fm-check-bg: radial-gradient(circle, #fffff0, #ffec60 40%, #ffaa00 75%, #f55214); --fm-check-ink: #1a0030; --fm-check-glow: 0 0 10px #ffaa00;
+  --fm-btn-bg: radial-gradient(circle at 50% 120%, #ffaa00, #ffec60 45%, #fffff0); --fm-btn-ink: #1a0030; --fm-btn-r: 10px;
+  --fm-btn-hover-shadow: 0 0 0 2px #fff0a0, 0 0 22px #ffaa00;
+  --fm-menu-r: 12px; --fm-menu-icon: #ffaa00; --fm-menu-hover: rgb(255 170 0 / .16); --fm-menu-hover-ink: #fff0a0;
+}
+
+/* ---- extras: white-hot badges, an ironbow progress bar, heat halos round the cast, a Guide whose "now" cells glow
+   hot, and an ironbow scrollbar (shared shape: extras-base.css) ---- */
+html:root:root {
+  --ex-badge-bg: radial-gradient(circle, #fff 0 25%, #ffcc33 55%, #f55214); --ex-badge-ink: #1a0030; --ex-badge-shadow: 0 0 12px rgb(255 140 40 / .75);
+  --ex-tick-bg: radial-gradient(circle, #fff 0 25%, #ffcc33 55%, #f55214); --ex-tick-ink: #1a0030;
+  --ex-prog-h: 5px; --ex-prog-r: 3px; --ex-prog-track: linear-gradient(90deg, #1a0040, #3d0a6e);
+  --ex-prog-fill: linear-gradient(90deg, #3d0a6e, #b0137a, #ff3d6e, #f55214, #ffcc33, #fff); --ex-prog-glow: 0 0 10px rgb(255 120 40 / .7);
+  --ex-cast-ring: 2px solid #f55214; --ex-cast-shadow: 0 0 18px rgb(245 82 20 / .55), 0 0 40px -10px #ff3d6e;
+  --ex-cast-hover: #ffcc33; --ex-cast-hover-shadow: 0 0 0 2px #fff, 0 0 26px #ffcc33;
+  --ex-guide-line-color: rgb(255 170 60 / .14); --ex-guide-time: #ffdcb0; --ex-guide-num: #ffcc33; --ex-guide-today: #ffcc33;
+  --ex-now-bg: linear-gradient(90deg, rgb(245 82 20 / .35), rgb(255 61 110 / .12)); --ex-now-shadow: inset 3px 0 #ffcc33; --ex-cell-hover: rgb(255 204 51 / .2);
+  --ex-tag-bg: #ff3d6e; --ex-tag-ink: #1a0030; --ex-tag-r: 3px; --ex-tag-new-bg: #ffcc33;
+  --ex-sb-thumb: linear-gradient(#fff, #ffcc33, #f55214, #ff3d6e, #b0137a); --ex-sb-thumb-hover: linear-gradient(#fff, #ffe680, #ffcc33); --ex-sb-thumb-flat: #f55214;
+}

@@ -1,0 +1,71 @@
+/* Forms, search and menus for the Homepage themes, imported by every theme.css after player-base.css.
+   Like player-base.css this is the shared shape; each theme sets --fm-* on html:root:root in its "forms" block.
+   Covers the user settings pages (.userPreferencesPage .settingsContainer: emby-input / emby-select / emby-textarea,
+   emby-checkbox, the Save button), the search page (.searchFields input, .searchSuggestions) and the menus
+   (the header's user menu and other MUI menus, the narrow-screen drawer, and the older action sheets). */
+
+/* settings and search suggestions sit on a panel, so their labels stay readable over the theme's wallpaper art */
+html:root .userPreferencesPage .settingsContainer, html:root .searchSuggestions {
+  max-width: 56em; margin: 1.2em auto 2em; box-sizing: border-box;
+  background: var(--fm-panel-bg, var(--dcs-glass)); border: var(--fm-panel-border, 1px solid var(--dcs-hairline));
+  border-radius: var(--fm-panel-r, var(--dcs-r-lg, 8px)); box-shadow: var(--fm-panel-shadow, 0 20px 50px -24px rgb(0 0 0 / .9));
+}
+html:root .userPreferencesPage .settingsContainer { padding-top: 1em; }
+html:root .searchSuggestions { max-width: 32em; padding: .4em 0 1em; }
+html:root .searchSuggestions a.emby-button { color: var(--fm-link, var(--dcs-accent)) !important; font-family: var(--fm-font, inherit); }
+html:root .searchSuggestions a.emby-button:is(:hover, :focus-visible) { background: var(--fm-menu-hover, var(--dcs-a14)) !important; color: var(--fm-menu-hover-ink, var(--fm-link, var(--dcs-accent))) !important; }
+
+/* text fields and drop-downs */
+html:root :is(.emby-input, .emby-select, .emby-textarea) {
+  background: var(--fm-field-bg, var(--dcs-ink-1)) !important; color: var(--fm-ink, var(--dcs-text)) !important;
+  border: var(--fm-field-border, 1px solid var(--dcs-hairline-strong)) !important; border-radius: var(--fm-r, var(--dcs-r-sm, 4px)) !important;
+  box-shadow: var(--fm-field-shadow, none) !important; font-family: var(--fm-font, inherit);
+}
+html:root :is(.emby-input, .emby-select, .emby-textarea):focus {
+  border-color: var(--fm-focus, var(--dcs-accent)) !important; box-shadow: var(--fm-field-shadow-focus, var(--fm-field-shadow, none)), var(--fm-focus-ring, 0 0 0 3px var(--dcs-a35)) !important; outline: none !important;
+}
+html:root .emby-select option { background: var(--fm-option-bg, var(--dcs-ink-1)); color: var(--fm-option-ink, var(--fm-ink, var(--dcs-text))); }
+html:root .selectArrowContainer { color: var(--fm-focus, var(--dcs-accent)); }
+html:root :is(.inputLabel, .selectLabel, .textareaLabel, .checkboxLabel) { color: var(--fm-label, var(--dcs-text)) !important; font-family: var(--fm-font, inherit); }
+html:root .inputLabelFocused, html:root .selectLabelFocused { color: var(--fm-focus, var(--dcs-accent)) !important; }
+/* the detail page's Version / Video / Audio / Subtitles labels are icons in ElegantFin (a background picture, the word
+   made transparent): keep the word hidden */
+html:root .trackSelectionFieldContainer > .selectLabel { color: transparent !important; }
+html:root .fieldDescription { color: var(--fm-desc, var(--dcs-text-mute)) !important; }
+
+/* checkboxes (input.emby-checkbox + span.checkboxLabel + span.checkboxOutline) */
+html:root .checkboxOutline {
+  background: var(--fm-check-off-bg, transparent) !important; border: var(--fm-check-border, 2px solid var(--dcs-hairline-strong)) !important;
+  border-radius: var(--fm-check-r, 3px) !important; box-shadow: var(--fm-check-off-shadow, none);
+}
+html:root .emby-checkbox:checked + span + .checkboxOutline {
+  background: var(--fm-check-bg, var(--dcs-accent)) !important; border-color: var(--fm-check-border-on, transparent) !important;
+  box-shadow: var(--fm-check-glow, none);
+}
+html:root .emby-checkbox:checked + span + .checkboxOutline .checkboxIcon-checked { color: var(--fm-check-ink, var(--hp-on-accent, #000)) !important; }
+html:root .emby-checkbox:focus-visible + span + .checkboxOutline { outline: 2px solid var(--fm-focus, var(--dcs-accent)); outline-offset: 2px; }
+
+/* the Save button */
+html:root .settingsContainer .button-submit {
+  background: var(--fm-btn-bg, var(--dcs-accent)) !important; color: var(--fm-btn-ink, var(--hp-on-accent, #000)) !important;
+  border: var(--fm-btn-border, 0) !important; border-radius: var(--fm-btn-r, var(--fm-r, var(--dcs-r-sm, 4px))) !important; box-shadow: var(--fm-btn-shadow, none) !important;
+  font-family: var(--fm-font, inherit); text-transform: var(--fm-btn-case, none); letter-spacing: var(--fm-btn-track, normal);
+}
+html:root .settingsContainer .button-submit:is(:hover, :focus-visible) { filter: brightness(1.12); box-shadow: var(--fm-btn-hover-shadow, var(--fm-focus-ring, 0 0 0 3px var(--dcs-a35))) !important; }
+
+/* menus: MUI menus and the drawer, and the older action sheets (track pickers, "..." menus) */
+html:root :is(.MuiMenu-paper, .MuiDrawer-paper, .actionSheet) {
+  background: var(--fm-menu-bg, var(--dcs-glass-strong)) !important; border: var(--fm-menu-border, 1px solid var(--dcs-hairline-strong)) !important;
+  border-radius: var(--fm-menu-r, var(--dcs-r-md, 8px)) !important; box-shadow: var(--fm-menu-shadow, 0 18px 40px -16px rgb(0 0 0 / .9)) !important;
+  color: var(--fm-ink, var(--dcs-text));
+}
+html:root .MuiDrawer-paper { border-radius: 0 !important; }
+html:root :is(.MuiMenu-paper, .MuiDrawer-paper) :is(.MuiListItemText-primary, .MuiTypography-root), html:root .actionSheet .actionSheetItemText { font-family: var(--fm-font, inherit) !important; }
+html:root :is(.MuiMenu-paper, .MuiDrawer-paper) .MuiListItemIcon-root, html:root .actionSheet .actionsheetMenuItemIcon { color: var(--fm-menu-icon, var(--dcs-accent)) !important; }
+html:root :is(.MuiMenu-paper, .MuiDrawer-paper) :is(.MuiMenuItem-root, .MuiListItemButton-root):is(:hover, .Mui-focusVisible, .Mui-selected),
+html:root .actionSheet .actionSheetMenuItem:is(:hover, :focus-visible) {
+  background: var(--fm-menu-hover, var(--dcs-a14)) !important; color: var(--fm-menu-hover-ink, var(--dcs-text)) !important;
+}
+html:root :is(.MuiMenu-paper, .MuiDrawer-paper) :is(.MuiMenuItem-root, .MuiListItemButton-root):is(:hover, .Mui-focusVisible, .Mui-selected) .MuiListItemIcon-root,
+html:root .actionSheet .actionSheetMenuItem:is(:hover, :focus-visible) .actionsheetMenuItemIcon { color: var(--fm-menu-hover-ink, var(--fm-menu-icon, var(--dcs-accent))) !important; }
+html:root :is(.MuiMenu-paper, .MuiDrawer-paper) .MuiDivider-root { border-color: var(--fm-menu-divider, var(--dcs-hairline)) !important; }

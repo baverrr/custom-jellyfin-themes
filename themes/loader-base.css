@@ -1,0 +1,18 @@
+/* Shared groundwork for the themes' own loading animations, imported by each theme that draws one (Cyberpunk doesn't:
+   it keeps the Custom CSS reactor). The server Custom CSS draws its "reactor" on Jellyfin's spinners (.mdl-spinner / .docspinner,
+   and MUI's CircularProgress). Its parts are cleared here so each theme draws its own in the same slots:
+   S = the spinner box, S::before and S::after (all three kinds); L::before and L::after, L being the first
+   .mdl-spinner__layer (the Material spinners only: MUI's has no layers, so it shows S and its two pseudo-elements).
+   The selectors below are the ones themes use; they outrank the reactor's, and the reactor's !important ones need
+   !important here too. A theme that changes the box size also moves .docspinner's centring margin. */
+@property --hp-ld-a { syntax: "<angle>"; inherits: false; initial-value: 0deg; } /* for spinners that sweep or draw an arc */
+html:root :is(.mdl-spinner, .docspinner, .MuiCircularProgress-root) { animation: none !important; isolation: isolate; }
+html:root :is(.mdl-spinner, .docspinner, .MuiCircularProgress-root)::before,
+html:root :is(.mdl-spinner, .docspinner, .MuiCircularProgress-root)::after,
+html:root :is(.mdl-spinner, .docspinner) > .mdl-spinner__layer:first-child::before,
+html:root :is(.mdl-spinner, .docspinner) > .mdl-spinner__layer:first-child::after {
+  content: ""; position: absolute; inset: 0; margin: 0; border: 0; border-radius: 0; background: none; box-shadow: none;
+  filter: none; -webkit-mask: none; mask: none; clip-path: none; transform: none; opacity: 1; animation: none;
+}
+html:root :is(.mdl-spinner, .docspinner) > .mdl-spinner__layer:first-child { overflow: visible !important; border-radius: 0 !important; }
+html:root .mdl-spinner > .mdl-spinner__layer:first-child > .mdl-spinner__circle-clipper:first-child { display: none !important; }

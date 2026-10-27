@@ -1,0 +1,136 @@
+/* PHOSPHOR (from Homepage's terminal.css) — green-screen mainframe terminal: phosphor green on black, monospace
+   everything, square bracketed windows, "> " prompts on titles, scanlines and a slow rolling interference bar. */
+@import url("../../dark/theme.css");
+@import url("../_base.css");
+@import url("../loader-base.css"); /* this theme draws its own loading animation */
+@import url("../player-base.css"); /* themed video player controls */
+@import url("../forms-base.css"); /* themed settings forms, search page and menus */
+@import url("../extras-base.css"); /* themed badges, progress bars, cast row, Live TV Guide and scrollbars */
+@import url("tiles/tiles.css"); /* My Media tiles, from ~/media-stack/jellyfin/library-covers/tiles */
+
+html:root:root {
+  --hp-accent: #39ff50; --hp-accent-2: #b6ffb0; --hp-accent-3: #5fe8ff; --hp-on-accent: #001a00;
+  --hp-bg: radial-gradient(ellipse at center, #021a02, #000800 70%) fixed;
+  --dcs-ink-0: #000600; --dcs-ink-1: #010c01; --dcs-ink-2: #021402; --dcs-ink-3: #002e06;
+  --dcs-glass: rgb(0 18 0 / .82); --dcs-glass-strong: rgb(0 12 0 / .96);
+  --dcs-hairline: rgb(57 255 80 / .28); --dcs-hairline-strong: rgb(57 255 80 / .6);
+  --dcs-text: #6dff7a; --dcs-text-dim: #42d84e; --dcs-text-mute: #2fa83a;
+  --dcs-r-xs: 0; --dcs-r-sm: 0; --dcs-r-md: 0; --dcs-r-lg: 0; --dcs-r-pill: 0;
+  --dcs-display: "JetBrains Mono", ui-monospace, monospace;
+  --hp-card-border: 1px solid rgb(57 255 80 / .45);
+  --hp-card-shadow: 0 0 10px rgb(57 255 80 / .12);
+  --hp-card-hover-border: #b6ffb0;
+  --hp-card-hover-shadow: 0 0 0 1px #39ff50, 0 0 22px rgb(57 255 80 / .45);
+  --hp-title-color: #6dff7a; --hp-title-glow: 0 0 5px rgb(57 255 80 / .55);
+}
+html:root body, html:root body :is(div, span, a, p, h1, h2, h3, h4, button, input, select, textarea, label, bdi):not(.material-icons):not(.material-symbols-rounded) {
+  font-family: "JetBrains Mono", ui-monospace, monospace !important;
+}
+html:root h2.sectionTitle::before, html:root .sectionTitle-cards::before { content: "> " !important; color: #39ff50 !important; position: static !important; display: inline !important; width: auto !important; height: auto !important; inset: auto !important; background: none !important; margin: 0 !important; transform: none !important; }
+html:root .cardImageContainer { filter: saturate(.8) contrast(1.05); }
+
+/* faint phosphor burn-in grid behind */
+html:root::before {
+  content: ""; position: fixed; inset: 0; z-index: -1;
+  background: linear-gradient(rgb(57 255 80 / .04) 1px, transparent 1px) 0 0 / 100% 4px;
+}
+/* rolling bar of interference */
+html:root::after {
+  content: ""; position: fixed; left: 0; right: 0; top: 0; height: 18vh; z-index: 9991; transform: translateY(-20vh);
+  background: linear-gradient(180deg, transparent, rgb(120 255 130 / .06), transparent); animation: hp-bar 6s linear infinite;
+}
+/* tube curvature vignette + scanlines, with a flicker */
+html:root body::before {
+  content: ""; position: fixed; inset: 0; z-index: 9990; pointer-events: none;
+  background: radial-gradient(ellipse at center, transparent 50%, rgb(0 0 0 / .7) 100%), repeating-linear-gradient(0deg, rgb(0 0 0 / .26) 0 1px, transparent 1px 3px);
+  animation: hp-flicker 4s infinite steps(1);
+}
+@keyframes hp-bar { to { transform: translateY(110vh); } }
+@keyframes hp-flicker { 0%, 96%, 100% { opacity: 1; } 97% { opacity: .85; } 98% { opacity: 1; } 99% { opacity: .9; } }
+
+/* loading animation: a mainframe prompt — "> LOADING" with a turning |/-\ spinner, and a block progress bar filling
+   underneath, in glowing phosphor (slots: loader-base.css; MUI's spinner, with no layers, shows the prompt line only) */
+html:root :is(.mdl-spinner, .docspinner, .MuiCircularProgress-root) { width: 8em !important; height: 2.6em !important; }
+html:root .docspinner { margin: -1.3em 0 0 -4em !important; }
+html:root :is(.mdl-spinner, .docspinner, .MuiCircularProgress-root)::before,
+html:root :is(.mdl-spinner, .docspinner, .MuiCircularProgress-root)::after,
+html:root :is(.mdl-spinner, .docspinner) > .mdl-spinner__layer:first-child::before {
+  inset: auto; left: 0; top: 0; white-space: pre; font: 600 14px/1.2 "JetBrains Mono", ui-monospace, monospace;
+  color: #6dff7a; text-shadow: 0 0 6px rgb(57 255 80 / .7);
+}
+html:root :is(.mdl-spinner, .docspinner, .MuiCircularProgress-root)::before { content: "> LOADING"; }
+html:root :is(.mdl-spinner, .docspinner, .MuiCircularProgress-root)::after { content: "|"; left: 10ch; animation: tm-ld-spin .6s infinite; }
+html:root :is(.mdl-spinner, .docspinner) > .mdl-spinner__layer:first-child::before { content: "[          ]"; top: 1.5em; animation: tm-ld-bar 2.6s infinite; }
+@keyframes tm-ld-spin { 0% { content: "|"; } 25% { content: "/"; } 50% { content: "-"; } 75% { content: "\\"; } }
+@keyframes tm-ld-bar {
+  0% { content: "[          ]"; } 9% { content: "[█         ]"; } 18% { content: "[██        ]"; } 27% { content: "[███       ]"; }
+  36% { content: "[████      ]"; } 45% { content: "[█████     ]"; } 54% { content: "[██████    ]"; }
+  63% { content: "[███████   ]"; } 72% { content: "[████████  ]"; }
+  81% { content: "[█████████ ]"; } 90%, 100% { content: "[██████████]"; }
+}
+
+/* ---- video player: a green-screen console — "> " prompt, block-character progress, bracketed clocks (shared shape: player-base.css) ---- */
+html:root:root {
+  --pl-shade: linear-gradient(0deg, #000800 0%, rgb(0 8 0 / .9) 50%, transparent);
+  --pl-shade-top: linear-gradient(180deg, rgb(0 8 0 / .9), transparent);
+  --pl-ink: #6dff7a; --pl-icon: #39ff50; --pl-icon-glow: 0 0 5px rgb(57 255 80 / .6);
+  --pl-title-color: #6dff7a; --pl-time: #b6ffb0; --pl-time-glow: 0 0 5px rgb(57 255 80 / .55);
+  --pl-h: .7em;
+  --pl-track: repeating-linear-gradient(90deg, rgb(57 255 80 / .2) 0 .5em, transparent .5em .62em);
+  --pl-buffer: repeating-linear-gradient(90deg, rgb(57 255 80 / .32) 0 .5em, transparent .5em .62em);
+  --pl-fill: repeating-linear-gradient(90deg, #39ff50 0 .5em, transparent .5em .62em);
+  --pl-thumb-bg: #b6ffb0; --pl-thumb-r: 0; --pl-thumb-w: .55em; --pl-thumb-h: 1.1em; --pl-thumb-shadow: 0 0 8px #39ff50;
+  --pl-btn-r: 0; --pl-hover-bg: #39ff50; --pl-hover-ink: #001a00;
+  --pl-play-border: 1px solid #39ff50; --pl-play-r: 0; --pl-play-hover-bg: #39ff50; --pl-play-hover-ink: #001a00;
+  --pl-bubble-bg: #000800; --pl-bubble-ink: #6dff7a; --pl-bubble-border: 1px solid #39ff50; --pl-bubble-r: 0;
+  --pl-marker: #b6ffb0;
+}
+html:root :is(.videoOsdBottom .paper-icon-button-light, .osdHeader .headerButton):is(:hover, :focus-visible) { text-shadow: none; }
+html:root .videoOsdBottom .osdTitle::before { content: "> "; color: #39ff50; }
+html:root .videoOsdBottom .osdTitle::after { content: "_"; color: #39ff50; animation: tm-pl-blink 1s steps(1) infinite; }
+html:root .videoOsdBottom :is(.osdPositionText, .osdDurationText)::before { content: "["; color: #2fa83a; }
+html:root .videoOsdBottom :is(.osdPositionText, .osdDurationText)::after { content: "]"; color: #2fa83a; }
+@keyframes tm-pl-blink { 50% { opacity: 0; } }
+/* Up Next: a console prompt — "> " heading, [ bracketed ] commands */
+html:root:root {
+  --pl-panel-bg: rgb(0 8 0 / .95); --pl-panel-border: 1px solid #39ff50; --pl-panel-r: 0; --pl-panel-shadow: 0 0 14px rgb(57 255 80 / .25);
+  --pl-next-bg: #39ff50; --pl-next-ink: #001a00; --pl-skip-ink: #39ff50; --pl-skip-border: 1px solid #39ff50; --pl-btn-r2: 0;
+  --pl-btn-hover-shadow: 0 0 12px rgb(57 255 80 / .6);
+}
+html:root .upNextDialog .upNextDialog-nextVideoText::before { content: "> "; color: #39ff50; }
+html:root .upNextDialog .upNextDialog-button::before { content: "[ "; }
+html:root .upNextDialog .upNextDialog-button::after { content: " ]"; }
+/* subtitles: phosphor green monospace */
+html:root:root { --pl-sub-font: "JetBrains Mono", ui-monospace, monospace; --pl-sub-ink: #b6ffb0; --pl-sub-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000, 0 0 6px rgb(57 255 80 / .7); }
+
+/* ---- forms, search and menus: console fields, [x] boxes, inverted green selection (shared shape: forms-base.css) ---- */
+html:root:root {
+  --fm-panel-bg: rgb(0 10 0 / .92); --fm-panel-border: 1px solid rgb(57 255 80 / .45); --fm-panel-r: 0; --fm-panel-shadow: 0 0 16px rgb(57 255 80 / .12);
+  --fm-field-bg: #000800; --fm-field-border: 1px solid rgb(57 255 80 / .5); --fm-r: 0;
+  --fm-focus: #b6ffb0; --fm-focus-ring: 0 0 10px rgb(57 255 80 / .5);
+  --fm-label: #6dff7a; --fm-desc: #42d84e; --fm-link: #6dff7a;
+  --fm-check-border: 1px solid #39ff50; --fm-check-r: 0; --fm-check-bg: #39ff50; --fm-check-ink: #001a00;
+  --fm-btn-bg: #39ff50; --fm-btn-ink: #001a00; --fm-btn-r: 0; --fm-btn-hover-shadow: 0 0 14px rgb(57 255 80 / .6);
+  --fm-menu-r: 0; --fm-menu-icon: #39ff50; --fm-menu-hover: #39ff50; --fm-menu-hover-ink: #001a00;
+}
+html:root .settingsContainer .button-submit span::before { content: "> "; }
+
+/* ---- extras: bracketed [n] badges, a block-segment progress bar, phosphor-ringed cast photos, the Guide as a
+   console listing with [LIVE] tags, and a block scrollbar (shared shape: extras-base.css) ---- */
+html:root:root {
+  --ex-badge-bg: #000800; --ex-badge-ink: #39ff50; --ex-badge-border: 1px solid #39ff50; --ex-badge-r: 0; --ex-badge-shadow: 0 0 8px rgb(57 255 80 / .45);
+  --ex-tick-bg: #39ff50; --ex-tick-ink: #001a00;
+  --ex-prog-h: 6px; --ex-prog-r: 0; --ex-prog-track: repeating-linear-gradient(90deg, rgb(57 255 80 / .16) 0 6px, transparent 6px 8px);
+  --ex-prog-fill: repeating-linear-gradient(90deg, #39ff50 0 6px, transparent 6px 8px); --ex-prog-glow: none;
+  --ex-cast-ring: 1px solid #39ff50; --ex-cast-shadow: 0 0 10px rgb(57 255 80 / .3); --ex-cast-hover: #b6ffb0; --ex-cast-hover-shadow: 0 0 0 3px #000800, 0 0 0 4px #39ff50;
+  --ex-cast-name: #6dff7a; --ex-cast-role: #2fa83a;
+  --ex-guide-line-color: rgb(57 255 80 / .2); --ex-guide-line: 1px dashed rgb(57 255 80 / .4); --ex-guide-glow: 0 0 6px rgb(57 255 80 / .5);
+  --ex-now-bg: rgb(57 255 80 / .1); --ex-now-shadow: inset 2px 0 #39ff50; --ex-cell-hover: #39ff50; --ex-cell-hover-ink: #001a00;
+  --ex-tag-bg: transparent; --ex-tag-ink: #39ff50; --ex-tag-border: 1px solid #39ff50; --ex-tag-r: 0; --ex-tag-new-bg: transparent; --ex-tag-new-ink: #5fe8ff;
+  --ex-sb-w: 12px; --ex-sb-r: 0; --ex-sb-border: 2px solid #000800; --ex-sb-thumb: #39ff50; --ex-sb-thumb-hover: #b6ffb0; --ex-sb-thumb-flat: #39ff50;
+  --ex-sb-track: #000800; --ex-sb-track-shadow: inset 1px 0 rgb(57 255 80 / .35);
+}
+html:root .countIndicator::before { content: "["; } html:root .countIndicator::after { content: "]"; }
+html:root .countIndicator { width: auto !important; min-width: 0; padding: 0 .3em; }
+html:root .tvguide .guideProgramIndicator::before { content: "["; } html:root .tvguide .guideProgramIndicator::after { content: "]"; }
+html:root .tvguide .programCell:is(:hover, :focus-visible) .guideProgramIndicator { color: #001a00 !important; border-color: #001a00; }

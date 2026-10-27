@@ -1,0 +1,87 @@
+/* Card badges, progress bars, the cast row, the Live TV Guide and scrollbars for the Homepage themes, imported by
+   every theme.css after forms-base.css. Like the other *-base.css files this is the shared shape; each theme sets
+   --ex-* on html:root:root in its "extras" block. Unset values fall back to the theme's --dcs-* / --hp-* colours.
+   Markup (jellyfin-web 12.2): .cardIndicators holds .countIndicator.indicator (unwatched count) and
+   .playedIndicator.indicator (watched tick, .indicatorIcon); .itemProgressBar > .itemProgressBarForeground (Custom CSS
+   draws the default); the cast row is #castCollapsible / #guestCastContent .personCard (Custom CSS owns its geometry and
+   the plugin tags: only ring and text are skinned here); the Guide is .tvguide with .guide-date-tab-button,
+   .timeslotHeader, .guide-channelHeaderCell (.guideChannelNumber, .guideChannelName), .programCell (.programCell-active
+   = on now) with .guideProgramName and .guideProgramIndicator tags (.liveTvProgram, .newTvProgram, .premiereTvProgram,
+   .repeatTvProgram). */
+
+/* badges: unwatched count and the watched tick */
+html:root :is(.countIndicator, .playedIndicator) {
+  background: var(--ex-badge-bg, var(--dcs-accent)) !important; color: var(--ex-badge-ink, var(--hp-on-accent, #000)) !important;
+  border: var(--ex-badge-border, 0); border-radius: var(--ex-badge-r, 50%) !important; box-shadow: var(--ex-badge-shadow, 0 2px 6px rgb(0 0 0 / .6)) !important;
+  font-family: var(--ex-badge-font, var(--dcs-display)); font-weight: 700; text-shadow: none;
+}
+html:root .playedIndicator { background: var(--ex-tick-bg, var(--ex-badge-bg, var(--dcs-accent))) !important; color: var(--ex-tick-ink, var(--ex-badge-ink, var(--hp-on-accent, #000))) !important; }
+html:root .playedIndicator .indicatorIcon { color: inherit !important; }
+
+/* watch progress on cards and list rows */
+html:root .itemProgressBar {
+  height: var(--ex-prog-h, 4px) !important; background: var(--ex-prog-track, rgb(255 255 255 / .14)) !important;
+  border-radius: var(--ex-prog-r, 4px) !important; box-shadow: var(--ex-prog-track-shadow, none);
+}
+html:root .itemProgressBarForeground {
+  background: var(--ex-prog-fill, linear-gradient(90deg, var(--dcs-accent-2), var(--dcs-accent))) !important;
+  box-shadow: var(--ex-prog-glow, 0 0 12px var(--dcs-a55)) !important; border-radius: var(--ex-prog-fill-r, var(--ex-prog-r, 4px)) !important;
+}
+
+/* cast and crew: a round frame (the shared card rule in _base.css would square it), name and role in the theme's type */
+html:root :is(#castCollapsible, #guestCastContent) .personCard .cardScalable {
+  border-radius: 50% !important; border: var(--ex-cast-ring, 2px solid var(--dcs-hairline-strong)) !important;
+  box-shadow: var(--ex-cast-shadow, 0 10px 24px -14px rgb(0 0 0 / .9)) !important; transition: border-color .2s, box-shadow .2s, transform .2s;
+}
+/* a theme's rectangular card frame (Cyberpunk's cut corners: a clip-path and a painted overlay) doesn't fit a round photo */
+html:root :is(#castCollapsible, #guestCastContent) .personCard .cardScalable { clip-path: none !important; }
+html:root :is(#castCollapsible, #guestCastContent) .personCard .cardImageContainer::after { content: none !important; }
+html:root :is(#castCollapsible, #guestCastContent) .personCard:is(:hover, :focus-within) .cardScalable {
+  border-color: var(--ex-cast-hover, var(--dcs-accent)) !important; box-shadow: var(--ex-cast-hover-shadow, 0 0 0 1px var(--dcs-accent), 0 0 22px -6px var(--dcs-accent)) !important;
+}
+html:root :is(#castCollapsible, #guestCastContent) .personCard .cardText-first :is(a, bdi) { font-family: var(--ex-cast-font, var(--dcs-display)); color: var(--ex-cast-name, var(--dcs-text)); }
+html:root :is(#castCollapsible, #guestCastContent) .personCard .cardText-secondary { font-family: var(--ex-cast-font, inherit); color: var(--ex-cast-role, var(--dcs-text-mute)); font-style: var(--ex-cast-role-style, normal); }
+
+/* the Live TV Guide: a panel behind the grid so it reads over the wallpaper art */
+html:root .tvguide .guideVerticalScroller {
+  background: var(--ex-guide-bg, var(--fm-panel-bg, var(--dcs-glass))); border: var(--ex-guide-border, var(--fm-panel-border, 1px solid var(--dcs-hairline)));
+  border-radius: var(--ex-guide-r, var(--fm-panel-r, 8px)); box-shadow: var(--ex-guide-shadow, var(--fm-panel-shadow, none));
+}
+html:root .tvguide :is(.guide-date-tab-button, .timeslotHeader, .guideChannelNumber, .guideChannelName, .guideProgramName, .guideProgramSecondaryInfo) { font-family: var(--ex-guide-font, var(--dcs-display)); }
+html:root .tvguide .guide-date-tab-button { color: var(--ex-guide-dim, var(--dcs-text-mute)) !important; }
+html:root .tvguide .guide-date-tab-button.emby-tab-button-active { color: var(--ex-guide-today, var(--dcs-accent)) !important; text-shadow: var(--ex-guide-glow, none); }
+html:root .tvguide .timeslotHeader { color: var(--ex-guide-time, var(--dcs-text-dim)); text-shadow: var(--ex-guide-glow, none); border-left: var(--ex-guide-line, 1px solid var(--dcs-hairline)); padding-left: .5em; }
+html:root .tvguide .guide-channelHeaderCell { color: var(--ex-guide-ink, var(--dcs-text)) !important; border-color: var(--ex-guide-line-color, var(--dcs-hairline)) !important; }
+html:root .tvguide .guideChannelNumber { color: var(--ex-guide-num, var(--dcs-accent)) !important; text-shadow: var(--ex-guide-glow, none); }
+html:root .tvguide :is(.channelPrograms, .programCell) { border-color: var(--ex-guide-line-color, var(--dcs-hairline)) !important; }
+html:root .tvguide .programCell { color: var(--ex-guide-dim, var(--dcs-text-dim)) !important; background: var(--ex-cell-bg, transparent) !important; }
+html:root .tvguide .programCell-active {
+  background: var(--ex-now-bg, var(--dcs-a14)) !important; color: var(--ex-now-ink, var(--dcs-text)) !important; box-shadow: var(--ex-now-shadow, inset 3px 0 var(--dcs-accent));
+}
+html:root .tvguide :is(.programCell, .guide-channelHeaderCell):is(:hover, :focus-visible) {
+  background: var(--ex-cell-hover, var(--dcs-a22)) !important; color: var(--ex-cell-hover-ink, var(--dcs-text)) !important; outline: none;
+}
+html:root .tvguide .guideProgramNameCaretIcon { color: var(--ex-guide-num, var(--dcs-accent)); }
+html:root .tvguide .guideProgramIndicator {
+  background: var(--ex-tag-bg, var(--dcs-accent-2)) !important; color: var(--ex-tag-ink, var(--hp-on-accent, #000)) !important;
+  border: var(--ex-tag-border, 0); border-radius: var(--ex-tag-r, 3px); box-shadow: var(--ex-tag-shadow, none);
+  font-family: var(--ex-guide-font, var(--dcs-display)); font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+}
+html:root .tvguide .guideProgramIndicator.newTvProgram { background: var(--ex-tag-new-bg, var(--dcs-accent)) !important; color: var(--ex-tag-new-ink, var(--ex-tag-ink, var(--hp-on-accent, #000))) !important; }
+
+/* scrollbars. The Custom CSS sets scrollbar-color on the page; Chromium ignores every ::-webkit-scrollbar rule while
+   that (or scrollbar-width) is set, so for Chromium it is switched back to auto and the bars are drawn with the
+   pseudo-elements; Firefox, which has no pseudo-elements, gets the two scrollbar-color colours. Elements that hide
+   their bar (scrollbar-width: none, the header nav and the card rows) keep it hidden. */
+html:root { scrollbar-color: var(--ex-sb-thumb-flat, var(--dcs-a55)) var(--ex-sb-track-flat, transparent); }
+@supports selector(::-webkit-scrollbar) {
+  html:root { scrollbar-color: auto !important; scrollbar-width: auto !important; }
+  html:root ::-webkit-scrollbar, html:root::-webkit-scrollbar { width: var(--ex-sb-w, 10px); height: var(--ex-sb-w, 10px); }
+  html:root ::-webkit-scrollbar-track, html:root::-webkit-scrollbar-track { background: var(--ex-sb-track, transparent); box-shadow: var(--ex-sb-track-shadow, none); }
+  html:root ::-webkit-scrollbar-thumb, html:root::-webkit-scrollbar-thumb {
+    background: var(--ex-sb-thumb, var(--dcs-a55)); border: var(--ex-sb-border, 2px solid transparent); background-clip: var(--ex-sb-clip, padding-box);
+    border-radius: var(--ex-sb-r, 999px); box-shadow: var(--ex-sb-shadow, none);
+  }
+  html:root ::-webkit-scrollbar-thumb:hover, html:root::-webkit-scrollbar-thumb:hover { background: var(--ex-sb-thumb-hover, var(--dcs-accent)); background-clip: var(--ex-sb-clip, padding-box); }
+  html:root ::-webkit-scrollbar-corner, html:root::-webkit-scrollbar-corner { background: var(--ex-sb-track, transparent); }
+}

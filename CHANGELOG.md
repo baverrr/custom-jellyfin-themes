@@ -1,0 +1,18 @@
+# Changelog
+
+## 1.0.0, 27 October 2026
+
+First public release, for Jellyfin 12.2.
+
+- Ten themes: Neon Arcade, Phosphor, Cosmos, Blueprint, Lava Lamp, Cyberpunk, Desktop 95, Mission HUD, Sakura,
+  Thermal Vision.
+- Each one themes the pages and cards, the My Media tiles, the loading animation, the title hover effects, the
+  video player and its Up Next card, subtitles, settings forms, search and menus, card badges and progress bars,
+  the cast row, the Live TV Guide and scrollbars.
+- Optional `effects.js` for per-theme animations.
+- The server Custom CSS (`custom-css/aurora-glass.css`) the themes build on, including a fix for collapsed cast
+  photos on detail pages.
+- Fixes found by a layout audit of 16 pages in every theme: the detail page's Video / Audio / Subtitles labels no
+  longer print their word over ElegantFin's icons, and round cast photos drop Cyberpunk's rectangular cut-corner
+  frame.
+- Privacy policy, security policy and contributing guide.
