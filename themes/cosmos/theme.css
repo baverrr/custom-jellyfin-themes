@@ -6,6 +6,7 @@
 @import url("../player-base.css"); /* themed video player controls */
 @import url("../forms-base.css"); /* themed settings forms, search page and menus */
 @import url("../extras-base.css"); /* themed badges, progress bars, cast row, Live TV Guide and scrollbars */
+@import url("../dashboard-base.css"); /* themed Server Dashboard (pick it in Settings > Display > Server Dashboard theme) */
 @import url("tiles/tiles.css"); /* My Media tiles, from ~/media-stack/jellyfin/library-covers/tiles */
 @property --hp-ang { syntax: "<angle>"; initial-value: 0deg; inherits: false; }
 
@@ -137,3 +138,6 @@ html:root:root {
   --ex-tag-bg: linear-gradient(90deg, #ff9be8, #7dd8ff); --ex-tag-ink: #0a0624; --ex-tag-r: 999px; --ex-tag-new-bg: linear-gradient(90deg, #7dd8ff, #7873f5); --ex-tag-new-ink: #fff;
   --ex-sb-thumb: linear-gradient(#ff9be8, #7dd8ff); --ex-sb-thumb-hover: linear-gradient(#ffc4f1, #b5e9ff); --ex-sb-thumb-flat: #b8a8ff;
 }
+
+/* ---- server dashboard: MUI colour channels (shared shape: dashboard-base.css) ---- */
+html:root:root { --db-primary-ch: 255 155 232; --db-secondary-ch: 125 216 255; --db-text-ch: 244 241 255; }

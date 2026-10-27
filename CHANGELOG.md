@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+- The Server Dashboard is themed too: pick a theme in **Settings > Display > Server Dashboard theme**. The new
+  `dashboard-base.css` recolours Jellyfin's MUI palette and gives the admin pages the theme's panels, fields,
+  buttons, tables and side drawer. The server Custom CSS doesn't load on the Dashboard, so it builds only on each
+  theme's own values.
+
 ## 1.0.0, 27 October 2026
 
 First public release, for Jellyfin 12.2.

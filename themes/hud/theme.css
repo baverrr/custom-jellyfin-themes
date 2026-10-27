@@ -7,6 +7,7 @@
 @import url("../player-base.css"); /* themed video player controls */
 @import url("../forms-base.css"); /* themed settings forms, search page and menus */
 @import url("../extras-base.css"); /* themed badges, progress bars, cast row, Live TV Guide and scrollbars */
+@import url("../dashboard-base.css"); /* themed Server Dashboard (pick it in Settings > Display > Server Dashboard theme) */
 @import url("tiles/tiles.css"); /* My Media tiles, from ~/media-stack/jellyfin/library-covers/tiles */
 
 html:root:root {
@@ -162,3 +163,6 @@ html:root:root {
   --ex-tag-bg: transparent; --ex-tag-ink: #ffb000; --ex-tag-border: 1px solid #ffb000; --ex-tag-r: 0; --ex-tag-new-bg: transparent; --ex-tag-new-ink: #4de1ff;
   --ex-sb-w: 6px; --ex-sb-r: 0; --ex-sb-border: 0; --ex-sb-thumb: rgb(255 176 0 / .7); --ex-sb-thumb-hover: #4de1ff; --ex-sb-thumb-flat: #ffb000;
 }
+
+/* ---- server dashboard: MUI colour channels (shared shape: dashboard-base.css) ---- */
+html:root:root { --db-primary-ch: 77 225 255; --db-secondary-ch: 255 176 0; --db-text-ch: 255 210 122; --db-font: "JetBrains Mono", ui-monospace, monospace; }

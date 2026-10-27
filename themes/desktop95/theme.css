@@ -8,6 +8,7 @@
 @import url("../player-base.css"); /* themed video player controls */
 @import url("../forms-base.css"); /* themed settings forms, search page and menus */
 @import url("../extras-base.css"); /* themed badges, progress bars, cast row, Live TV Guide and scrollbars */
+@import url("../dashboard-base.css"); /* themed Server Dashboard (pick it in Settings > Display > Server Dashboard theme) */
 @import url("tiles/tiles.css"); /* My Media tiles, from ~/media-stack/jellyfin/library-covers/tiles */
 
 html:root:root {
@@ -160,3 +161,13 @@ html:root:root {
   --ex-sb-track: repeating-conic-gradient(#c0c0c0 0 25%, #fff 0 50%) 0 0 / 2px 2px;
 }
 html:root .tvguide .programCell:is(:hover, :focus-visible) .guideProgramNameCaretIcon, html:root .tvguide .guide-channelHeaderCell:is(:hover, :focus-visible) .guideChannelNumber { color: #fff !important; }
+
+/* ---- server dashboard: navy windows with the raised bevel, black labels in the white fields, the open page in
+   title-bar blue on the grey side drawer (shared shape: dashboard-base.css) ---- */
+html:root:root {
+  --db-primary-ch: 192 192 192; --db-secondary-ch: 16 132 208; --db-text-ch: 255 255 255; --db-font: Tahoma, Verdana, "Segoe UI", sans-serif;
+  --db-field-label: #000; --db-field-label-focus: #000080; --db-label-focus: #ffff00; --db-head-bg: #c0c0c0;
+}
+html:root body.dashboardDocument .MuiTableHead-root .MuiTableCell-root { color: #000 !important; box-shadow: inset -1px -1px #808080, inset 1px 1px #fff; }
+html:root body.dashboardDocument .MuiDrawer-paper .MuiListSubheader-root { color: #000080; font-weight: 700; }
+html:root body.dashboardDocument .MuiDrawer-paper .MuiListItemButton-root.Mui-selected :is(.MuiListItemText-primary, .MuiTypography-root, .MuiListItemIcon-root) { color: #fff !important; }

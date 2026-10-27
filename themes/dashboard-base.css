@@ -1,0 +1,144 @@
+/* Server Dashboard for the Homepage themes, imported by every theme.css after extras-base.css. The theme reaches the
+   Dashboard when it is picked in Settings > Display > Server Dashboard theme.
+   - The Dashboard is React + MUI. MUI reads its colours from --jf-palette-* variables, which Jellyfin defines for its
+     own themes on [data-theme="..."]; ours fall back to the stock dark set on :root. They are redefined here on
+     body.dashboardDocument, so the main app keeps its palette and MUI's pop-ups (appended to body) still inherit.
+   - The server Custom CSS (Aurora Glass) is not loaded on the Dashboard, so everything here builds on the theme's own
+     --hp-* / --dcs-* values and on the --fm-* panel, field and button styles from its forms block.
+   - The *Channel variables are "r g b" triples that MUI puts inside rgba(), which CSS can't derive from a colour, so
+     each theme sets --db-primary-ch, --db-secondary-ch and --db-text-ch in its "dashboard" block.
+   - Optional per-theme values: --db-primary (default --dcs-accent), --db-font (body text), --db-label-focus,
+     --db-paper-* (default the --fm-panel-* look), --db-head-bg (table headers). */
+
+html:root body.dashboardDocument {
+  --jf-palette-primary-main: var(--db-primary, var(--dcs-accent));
+  --jf-palette-primary-light: var(--db-primary, var(--dcs-accent));
+  --jf-palette-primary-dark: var(--db-primary, var(--dcs-accent));
+  --jf-palette-primary-contrastText: var(--db-on-primary, var(--hp-on-accent, #000));
+  --jf-palette-primary-mainChannel: var(--db-primary-ch);
+  --jf-palette-primary-lightChannel: var(--db-primary-ch);
+  --jf-palette-primary-darkChannel: var(--db-primary-ch);
+  --jf-palette-secondary-main: var(--dcs-accent-2);
+  --jf-palette-secondary-light: var(--dcs-accent-2);
+  --jf-palette-secondary-dark: var(--dcs-accent-2);
+  --jf-palette-secondary-mainChannel: var(--db-secondary-ch);
+  /* info (the Activity list's icons, info alerts) is Jellyfin's light blue: it takes the second accent */
+  --jf-palette-info-main: var(--dcs-accent-2);
+  --jf-palette-info-light: var(--dcs-accent-2);
+  --jf-palette-info-dark: var(--dcs-accent-2);
+  --jf-palette-info-contrastText: var(--hp-on-accent, #000);
+  --jf-palette-info-mainChannel: var(--db-secondary-ch);
+  --jf-palette-common-background: var(--dcs-ink-1);
+  --jf-palette-common-onBackground: var(--dcs-text);
+  --jf-palette-common-onBackgroundChannel: var(--db-text-ch);
+  --jf-palette-text-primary: var(--dcs-text);
+  --jf-palette-text-secondary: var(--dcs-text-dim, var(--dcs-text-mute));
+  --jf-palette-text-icon: var(--dcs-text-mute);
+  --jf-palette-text-primaryChannel: var(--db-text-ch);
+  --jf-palette-text-secondaryChannel: var(--db-text-ch);
+  --jf-palette-divider: var(--dcs-hairline);
+  --jf-palette-TableCell-border: var(--dcs-hairline);
+  --jf-palette-Chip-defaultBorder: var(--dcs-hairline-strong);
+  --jf-palette-background-default: var(--dcs-ink-1);
+  --jf-palette-background-paper: var(--dcs-glass-strong);
+  --jf-palette-action-hover: var(--dcs-a14);
+  --jf-palette-action-selected: var(--dcs-a22);
+  --jf-palette-AppBar-defaultBg: transparent;
+  --jf-palette-Tooltip-bg: var(--dcs-glass-strong);
+  --jf-palette-SnackbarContent-bg: var(--dcs-glass-strong);
+  --jf-palette-SnackbarContent-color: var(--dcs-text);
+  --jf-palette-LinearProgress-primaryBg: var(--dcs-a22);
+  /* MUI lightens dark-mode papers with a white gradient per elevation; the theme's own panel look replaces it */
+  --jf-overlays-1: none; --jf-overlays-2: none; --jf-overlays-3: none; --jf-overlays-4: none; --jf-overlays-6: none;
+  --jf-overlays-8: none; --jf-overlays-12: none; --jf-overlays-16: none; --jf-overlays-24: none;
+  color: var(--dcs-text);
+}
+
+/* type: the theme's body font where it has one, and its title style on page and section headings */
+html:root body.dashboardDocument :is(.MuiTypography-root, .MuiButtonBase-root, .MuiInputBase-root, .MuiFormLabel-root,
+  .MuiFormControlLabel-label, .MuiFormHelperText-root, .MuiTableCell-root, .MuiChip-label, .MuiListSubheader-root, .MuiMenuItem-root) {
+  font-family: var(--db-font);
+}
+html:root body.dashboardDocument :is(h1, h2, h3, .MuiTypography-h1, .MuiTypography-h2, .MuiTypography-h3, .MuiTypography-h4, .MuiTypography-h5, .MuiTypography-h6, .sectionTitle) {
+  font-family: var(--hp-title-font, var(--dcs-display, var(--db-font)));
+  color: var(--hp-title-color, var(--dcs-text));
+  text-transform: var(--hp-title-case, none); letter-spacing: var(--hp-title-track, normal);
+  font-style: var(--hp-title-style, normal); text-shadow: var(--hp-title-glow, none);
+}
+html:root body.dashboardDocument .MuiListSubheader-root { background: transparent; color: var(--dcs-text-mute); }
+html:root body.dashboardDocument .MuiLink-root { color: var(--fm-link, var(--dcs-accent)); text-decoration-color: currentColor; }
+
+/* the top bar sits on the wallpaper */
+html:root body.dashboardDocument .MuiAppBar-root { background: transparent !important; box-shadow: none !important; }
+
+/* panels and cards: the same panel as the settings forms */
+html:root body.dashboardDocument :is(.MuiCard-root, .MuiPaper-root):not(.MuiAppBar-root, .MuiDrawer-paper, .MuiMenu-paper, .MuiPopover-paper,
+  .MuiAlert-root, .MuiSnackbarContent-root, .MuiAutocomplete-paper, .MuiTooltip-tooltip, .MuiPaper-root .MuiPaper-root, .content-primary > form .MuiPaper-root) {
+  background: var(--db-paper-bg, var(--fm-panel-bg, var(--dcs-glass))) !important;
+  border: var(--db-paper-border, var(--fm-panel-border, 1px solid var(--dcs-hairline))) !important;
+  border-radius: var(--db-paper-r, var(--fm-panel-r, var(--dcs-r-lg, 8px))) !important;
+  box-shadow: var(--db-paper-shadow, var(--fm-panel-shadow, 0 20px 50px -24px rgb(0 0 0 / .9))) !important;
+  color: var(--dcs-text);
+}
+/* settings pages (General, Branding, Playback, Networking...) are one form: it sits on that panel too, like the user
+   settings, so the labels stay readable over the wallpaper art */
+html:root body.dashboardDocument .content-primary > form {
+  padding: 1.2em 1.4em 1.6em; margin-bottom: 2em; box-sizing: border-box;
+  background: var(--db-paper-bg, var(--fm-panel-bg, var(--dcs-glass)));
+  border: var(--db-paper-border, var(--fm-panel-border, 1px solid var(--dcs-hairline)));
+  border-radius: var(--db-paper-r, var(--fm-panel-r, var(--dcs-r-lg, 8px)));
+  box-shadow: var(--db-paper-shadow, var(--fm-panel-shadow, 0 20px 50px -24px rgb(0 0 0 / .9)));
+}
+/* a card or table inside a panel stays flat, so frames don't stack */
+html:root body.dashboardDocument :is(.MuiPaper-root, .content-primary > form) .MuiPaper-root:not(.MuiMenu-paper, .MuiPopover-paper, .MuiAlert-root) {
+  background-color: transparent !important; box-shadow: none !important;
+}
+html:root body.dashboardDocument .MuiDialog-paper { background: var(--db-paper-bg, var(--fm-panel-bg, var(--dcs-glass-strong))) !important; }
+/* device cards: the artwork area takes a tint of the accent instead of Jellyfin's blue */
+html:root body.dashboardDocument .MuiCardMedia-root { background-color: var(--dcs-a14) !important; }
+
+/* tables (Activity, Devices, API Keys, Logs use Material React Table, which paints its rows and cells a fixed grey) */
+html:root body.dashboardDocument :is(.MuiTableRow-root, .MuiTableCell-root),
+html:root body.dashboardDocument .MuiPaper-root:has(> .MuiTableContainer-root) > .MuiBox-root { background-color: transparent !important; }
+/* the header row is sticky, so it stays opaque over the rows scrolling under it */
+html:root body.dashboardDocument .MuiTableHead-root .MuiTableCell-root {
+  background: var(--db-head-bg, linear-gradient(var(--dcs-a14), var(--dcs-a14)) var(--dcs-ink-1)) !important; color: var(--hp-title-color, var(--dcs-text));
+  text-transform: var(--fm-btn-case, none); letter-spacing: var(--fm-btn-track, normal);
+}
+html:root body.dashboardDocument .MuiTableRow-hover:hover { background: var(--dcs-a08) !important; }
+
+/* buttons: the theme's Save button for the main actions; other colours keep their meaning but take its shape */
+html:root body.dashboardDocument .MuiButton-root { border-radius: var(--fm-btn-r, var(--fm-r, var(--dcs-r-sm, 4px))); text-transform: var(--fm-btn-case, none); letter-spacing: var(--fm-btn-track, normal); }
+html:root body.dashboardDocument .MuiButton-containedPrimary {
+  background: var(--fm-btn-bg, var(--dcs-accent)) !important; color: var(--fm-btn-ink, var(--hp-on-accent, #000)) !important;
+  border: var(--fm-btn-border, 0); box-shadow: var(--fm-btn-shadow, none);
+}
+html:root body.dashboardDocument .MuiButton-contained:is(:hover, .Mui-focusVisible) { filter: brightness(1.12); box-shadow: var(--fm-btn-hover-shadow, var(--fm-focus-ring, 0 0 0 3px var(--dcs-a35))); }
+html:root body.dashboardDocument .MuiButton-contained.Mui-disabled { filter: grayscale(1) opacity(.5); }
+
+/* text fields and drop-downs */
+html:root body.dashboardDocument :is(.MuiOutlinedInput-root, .MuiFilledInput-root) {
+  background: var(--fm-field-bg, var(--dcs-ink-1)); color: var(--fm-ink, var(--dcs-text));
+  border-radius: var(--fm-r, var(--dcs-r-sm, 4px)); box-shadow: var(--fm-field-shadow, none);
+}
+html:root body.dashboardDocument :is(.MuiInputBase-input, .MuiSelect-icon, .MuiInputAdornment-root) { color: var(--fm-ink, var(--dcs-text)); }
+html:root body.dashboardDocument .MuiOutlinedInput-notchedOutline { border: var(--fm-field-border, 1px solid var(--dcs-hairline-strong)); border-radius: inherit; }
+html:root body.dashboardDocument .MuiOutlinedInput-root.Mui-focused { box-shadow: var(--fm-field-shadow, 0 0 0 transparent), var(--fm-focus-ring, 0 0 0 3px var(--dcs-a35)); }
+html:root body.dashboardDocument .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline { border-color: var(--fm-focus, var(--dcs-accent)); }
+html:root body.dashboardDocument :is(.MuiFilledInput-root)::before { border-bottom-color: var(--dcs-hairline-strong); }
+html:root body.dashboardDocument .MuiFilledInput-root::after { border-bottom-color: var(--fm-focus, var(--dcs-accent)); }
+html:root body.dashboardDocument :is(.MuiInputLabel-root, .MuiFormLabel-root, .MuiFormControlLabel-label) { color: var(--fm-label, var(--dcs-text)); }
+html:root body.dashboardDocument :is(.MuiInputLabel-root, .MuiFormLabel-root).Mui-focused { color: var(--db-label-focus, var(--fm-focus, var(--dcs-accent))); }
+/* a filled field's label sits inside the field, so it follows the field's ink */
+html:root body.dashboardDocument .MuiInputLabel-filled { color: var(--db-field-label, var(--fm-label, var(--dcs-text))); }
+html:root body.dashboardDocument .MuiInputLabel-filled.Mui-focused { color: var(--db-field-label-focus, var(--db-label-focus, var(--fm-focus, var(--dcs-accent)))); }
+html:root body.dashboardDocument .MuiFormHelperText-root:not(.Mui-error) { color: var(--fm-desc, var(--dcs-text-mute)); }
+
+/* chips, toggle buttons and progress */
+html:root body.dashboardDocument .MuiChip-root { border-radius: var(--fm-r, 16px); }
+html:root body.dashboardDocument .MuiToggleButton-root { border-color: var(--dcs-hairline-strong); color: var(--dcs-text-mute); border-radius: var(--fm-r, var(--dcs-r-sm, 4px)); }
+html:root body.dashboardDocument .MuiToggleButton-root.Mui-selected { background: var(--fm-btn-bg, var(--dcs-accent)); color: var(--fm-btn-ink, var(--hp-on-accent, #000)); }
+html:root body.dashboardDocument .MuiLinearProgress-bar { background: var(--ex-prog-fill, var(--dcs-accent)); box-shadow: var(--ex-prog-glow, none); }
+
+/* the side drawer (forms-base.css gives it the theme's menu panel): the open page is marked like a hovered menu item */
+html:root body.dashboardDocument .MuiDrawer-paper { box-shadow: var(--db-drawer-shadow, var(--fm-menu-shadow, none)) !important; }

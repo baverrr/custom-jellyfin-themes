@@ -8,6 +8,7 @@
 @import url("../player-base.css"); /* themed video player controls */
 @import url("../forms-base.css"); /* themed settings forms, search page and menus */
 @import url("../extras-base.css"); /* themed badges, progress bars, cast row, Live TV Guide and scrollbars */
+@import url("../dashboard-base.css"); /* themed Server Dashboard (pick it in Settings > Display > Server Dashboard theme) */
 @import url("tiles/tiles.css"); /* My Media tiles, from ~/media-stack/jellyfin/library-covers/tiles */
 
 html:root:root {
@@ -133,3 +134,8 @@ html:root:root {
   --ex-sb-w: 8px; --ex-sb-r: 2px; --ex-sb-border: 1px solid transparent; --ex-sb-thumb: rgb(210 58 42 / .8); --ex-sb-thumb-hover: #d23a2a; --ex-sb-thumb-flat: #d23a2a;
 }
 html:root .countIndicator, html:root .playedIndicator { transform: rotate(-6deg); }
+
+/* ---- server dashboard: sumi-ink windows with the vermilion edge; the accent is already hanko red, so Restart and
+   Shutdown are outlined to stay apart from it (shared shape: dashboard-base.css) ---- */
+html:root:root { --db-primary-ch: 210 58 42; --db-secondary-ch: 111 143 224; --db-text-ch: 245 239 227; }
+html:root body.dashboardDocument .MuiButton-containedError { background: transparent !important; color: #f5efe3 !important; box-shadow: inset 0 0 0 1.5px #d23a2a !important; }

@@ -27,7 +27,7 @@
 
 ## The themes
 
-Pick one per user in **Settings > Display > Theme**. Each tile below is that theme's own library artwork.
+Pick one per user in **Settings > Display > Theme**, and again under **Server Dashboard theme** for the admin pages. Each tile below is that theme's own library artwork.
 
 <table>
   <tr>
@@ -115,6 +115,7 @@ Pick one per user in **Settings > Display > Theme**. Each tile below is that the
 | **Cast and crew** | Round photo frames, names and roles |
 | **Live TV Guide** | The grid, the "on now" cells, channel numbers, LIVE / NEW tags |
 | **Scrollbars** | Colour and shape, up to Desktop 95's classic chequered bar |
+| **Server Dashboard** | Every admin page: the side drawer, panels and cards, settings forms, buttons, tables and the Activity list |
 
 ## Install
 
@@ -153,8 +154,9 @@ copy the same way):
 JavaScript Injector plugin (`src`: `/web/themes/homepage/effects.js`). It adds each theme's motion: Matrix rain,
 a lock-on reticle, falling petals and more. It pauses during playback, in hidden tabs and with reduced motion.
 
-**5. Pick a theme** in Settings > Display > Theme, then **hard-refresh** (Ctrl+Shift+R). Jellyfin sends no cache
-headers for these files, so browsers keep old copies until then.
+**5. Pick a theme** in Settings > Display > Theme, and the same or another one in **Server Dashboard theme** for
+the admin pages. Then **hard-refresh** (Ctrl+Shift+R). Jellyfin sends no cache headers for these files, so
+browsers keep old copies until then.
 
 ## Adapting it
 
@@ -178,6 +180,7 @@ themes/
 ├── player-base.css    video player, Up Next and subtitles (--pl-*)
 ├── forms-base.css     settings forms, search and menus (--fm-*)
 ├── extras-base.css    badges, progress, cast row, Live TV Guide, scrollbars (--ex-*)
+├── dashboard-base.css Server Dashboard: Jellyfin's MUI palette and panels (--db-*)
 ├── effects.js / .css  optional animated effects
 ├── fonts/             JetBrains Mono, latin subset (OFL)
 └── <theme>/
