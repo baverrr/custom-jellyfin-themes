@@ -154,6 +154,9 @@ copy the same way):
 **4. Optional: animated effects.** Load [`themes/effects.js`](themes/effects.js) on every page with the
 JavaScript Injector plugin (`src`: `/web/themes/homepage/effects.js`). It adds each theme's motion: Matrix rain,
 a lock-on reticle, falling petals and more. It pauses during playback, in hidden tabs and with reduced motion.
+Jellyfin serves these files without cache headers, so browsers can keep an old copy for days. After updating them,
+change a version tag on the `src`, for example `/web/themes/homepage/effects.js?v=2`; `effects.js` passes the same tag
+on to `effects.css`.
 
 **Optional: themed screensavers.** Load [`themes/screensavers.js`](themes/screensavers.js) the same way (`src`:
 `/web/themes/homepage/screensavers.js`), then pick one in **Settings > Display > Screensaver**. Each is made from

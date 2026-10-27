@@ -9,6 +9,8 @@
 - Themed screensavers: `screensavers.js` adds ten animated screensavers, one per theme, plus "match my theme",
   to Settings > Display > Screensaver. Each is built from random movies and shows in your library.
 - Cyberpunk's decrypt effect now also runs on side-drawer items, in the Dashboard and the main app.
+- `effects.js` loads `effects.css` with the same `?v=` tag it was loaded with, so a new tag on the Injector `src` refreshes
+  both in every browser.
 
 ## 1.0.0, 27 October 2026
 

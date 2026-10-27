@@ -11,8 +11,10 @@
   const BASE = "/web/themes/homepage/";
   const el = (tag, cls, text) => { const n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; };
 
-  // overlay styles for the effects
-  const css = el("link"); css.rel = "stylesheet"; css.href = BASE + "effects.css"; document.head.appendChild(css);
+  // overlay styles for the effects, with the same ?v= cache-buster this script was loaded with (Jellyfin sends these
+  // files without cache headers, so a changed URL is the only way to make browsers fetch a new copy)
+  const ver = (document.currentScript?.src || "").split("?")[1];
+  const css = el("link"); css.rel = "stylesheet"; css.href = BASE + "effects.css" + (ver ? "?" + ver : ""); document.head.appendChild(css);
 
   // ---- shared state: pointer, hovered card, video playing ----
   let px = innerWidth / 2, py = innerHeight / 2, hot = null;
