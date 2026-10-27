@@ -69,11 +69,8 @@ html.hp-fx-hud .mainAnimatedPage { padding-bottom: 30px; }
 #th-read::before { content: ""; position: absolute; left: -24px; top: -24px; width: 12px; height: 12px; border: 1.5px solid #fff; border-radius: 50%; box-shadow: 0 0 0 1px #0008; }
 
 /* ---- Cyberpunk: decrypting names + glitch bursts ---- */
-html.hp-fx-cyberpunk .cardText[data-scr] { position: relative; }
-html.hp-fx-cyberpunk .cardText[data-scr]::after { content: attr(data-scr); position: absolute; inset: 0; white-space: nowrap; overflow: hidden; color: #00f0ff; background: #07070b; font: inherit; letter-spacing: inherit; }
-/* side-drawer items sit on the hover tint, so the real label goes clear under the glyphs instead of being covered */
-html.hp-fx-cyberpunk .MuiListItemText-primary[data-scr] { position: relative; color: transparent !important; }
-html.hp-fx-cyberpunk .MuiListItemText-primary[data-scr]::after { content: attr(data-scr); position: absolute; inset: 0; white-space: nowrap; overflow: hidden; color: #00f0ff; font: inherit; letter-spacing: inherit; }
+/* the decrypt is drawn in the same overlay as the other themes' title effects (.hp-tt, see "Labels" below) */
+html.hp-fx-cyberpunk .hp-tt-scr { color: #00f0ff; -webkit-text-fill-color: #00f0ff; text-overflow: clip; }
 #cp-bars { position: fixed; inset: 0; z-index: 9991; pointer-events: none; opacity: 0;
   background: linear-gradient(transparent 18%, rgb(0 240 255 / .18) 18% 21%, transparent 21% 57%, rgb(255 0 60 / .2) 57% 58.5%, transparent 58.5% 76%, rgb(123 47 208 / .14) 76% 77%, transparent 77%); }
 html.cp-glitch #cp-bars { opacity: 1; animation: hp-bars .28s steps(3) 1; }
@@ -86,13 +83,15 @@ html.hp-fx-sakura h2.sectionTitle[data-kanji]::after { content: attr(data-kanji)
   margin-left: .55em; padding: 0 .3em; color: #fffbf2; background: #d23a2a !important; font-weight: 700; font-size: .8em; vertical-align: .1em; }
 
 
-/* ---- Card titles (every theme but Cyberpunk): effects.js lays a per-letter copy (.hp-tt, letters <i style="--i">) over
-   the title of the card you point at; the real text is hidden meanwhile. Letters start in their keyframes' 0% state
+/* ---- Labels (every theme but Cyberpunk): effects.js lays a per-letter copy (.hp-tt, letters <i style="--i">) over
+   the label you point at (a card title, a side-drawer item or a header link); the real text is hidden meanwhile. Letters start in their keyframes' 0% state
    (fill-mode both) and end on the plain title, so the copy can just disappear. Titles clip (overflow: hidden), so
    the effects stay mostly in colour, glow and squash rather than big moves. ---- */
 .hp-tt-on { position: relative; -webkit-text-fill-color: transparent; text-shadow: none !important; }
 .hp-tt { position: absolute; inset: 0; z-index: 1; pointer-events: none; padding: inherit; overflow: hidden; white-space: pre; text-overflow: ellipsis;
   text-align: inherit; -webkit-text-fill-color: currentColor; }
+/* a header link's label is a bare text node, so the copy sits on its measured box (inline left/top/width/height) */
+.hp-tt.hp-tt-box { inset: auto; padding: 0; overflow: visible; text-align: left; }
 /* letters start --tt-step apart (per theme), squeezed so a long title's cascade still takes about a second */
 .hp-tt { --tt-step: 30ms; --tt-gap: min(var(--tt-step), 1s / var(--n)); }
 .hp-tt i { display: inline-block; font-style: inherit; animation: .6s ease-out calc(var(--i) * var(--tt-gap)) both; }

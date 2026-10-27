@@ -56,26 +56,53 @@
   };
   const raf = (fn) => { let q = false; return () => { if (!q) { q = true; requestAnimationFrame(() => { q = false; fn(); }); } }; };
 
-  // Pointing at a card animates its title (every theme but Cyberpunk, whose "decrypt" is its own): a copy of the title,
-  // one <i> per letter (--i = its index, --n = the count), is laid over the real one for effects.css to animate per theme,
-  // and removed when the last letter's animation ends. Each letter must run one animation only, delayed by --i.
+  // The label of what you point at: a card's title, a side-drawer item (the Dashboard's menu and the main app's), or a
+  // header link (server name, libraries). A header link's label is a bare text node beside its icon, owned by React,
+  // so instead of wrapping it its box is measured and the copy is laid over that.
+  const LABELLED = ".card, .MuiListItemButton-root, .MuiAppBar-root a.MuiButton-root";
+  const label = (e) => {
+    const hit = e.target.closest?.(LABELLED);
+    if (!hit || hit.contains(e.relatedTarget)) return null;
+    if (hit.matches(".MuiButton-root")) {
+      const node = [...hit.childNodes].find((n) => n.nodeType === 3 && n.textContent.trim());
+      if (!node) return null;
+      const r = document.createRange(); r.selectNodeContents(node);
+      const b = r.getBoundingClientRect(), h = hit.getBoundingClientRect();
+      return { host: hit, txt: node.textContent.trim(), box: { left: b.left - h.left, top: b.top - h.top, width: b.width, height: b.height } };
+    }
+    const host = hit.querySelector(".cardText-first") || hit.querySelector(".cardText") || hit.querySelector(".MuiListItemText-primary");
+    if (!host || host.querySelector(":scope > .hp-tt")) return null;
+    const txt = host.textContent.trim();
+    return txt ? { host, txt, box: null } : null;
+  };
+  // Lays an empty copy (.hp-tt) over the label and hides the real text (.hp-tt-on, text only, so icons stay); null if
+  // one is already there. unlay() takes it away again.
+  const overlay = ({ host, box }) => {
+    if (host.querySelector(":scope > .hp-tt")) return null;
+    const o = el("span", "hp-tt"); o.setAttribute("aria-hidden", "true");
+    if (box) { o.classList.add("hp-tt-box"); for (const k in box) o.style[k] = `${box[k]}px`; o.style.lineHeight = `${box.height}px`; }
+    host.classList.add("hp-tt-on"); host.append(o);
+    return o;
+  };
+  const unlay = (o) => { const host = o.parentElement; o.remove(); if (host && !host.querySelector(":scope > .hp-tt")) host.classList.remove("hp-tt-on"); };
+  track(() => document.querySelectorAll(".hp-tt").forEach(unlay));
+
+  // Pointing at a label animates it (every theme but Cyberpunk, whose "decrypt" is its own): the copy gets one <i> per
+  // letter (--i = its index, --n = the count) for effects.css to animate per theme, and goes when the last letter's
+  // animation ends. Each letter must run one animation only, delayed by --i.
   const titles = () => {
     if (still) return;
     on(document, "pointerover", (e) => {
-      const card = e.target.closest?.(".card");
-      if (!card || card.contains(e.relatedTarget)) return;
-      const t = card.querySelector(".cardText-first") || card.querySelector(".cardText"), txt = t?.textContent?.trim();
-      if (!txt || t.querySelector(".hp-tt")) return;
-      const o = el("span", "hp-tt"), chars = [...txt].slice(0, 80);
-      o.setAttribute("aria-hidden", "true"); o.style.setProperty("--n", chars.length);
+      const l = label(e), o = l && overlay(l);
+      if (!o) return;
+      const chars = [...l.txt].slice(0, 80);
+      o.style.setProperty("--n", chars.length);
       chars.forEach((ch, i) => { const c = el("i", null, ch); c.style.setProperty("--i", i); o.append(c); });
       let id = 0;
-      const done = () => { clearTimeout(id); o.remove(); if (!t.querySelector(".hp-tt")) t.classList.remove("hp-tt-on"); };
+      const done = () => { clearTimeout(id); unlay(o); };
       o.addEventListener("animationend", (ev) => { if (ev.target === o.lastElementChild) done(); });
       id = setTimeout(done, 6000); // in case an animation never runs (hidden tab, card re-rendered)
-      t.classList.add("hp-tt-on"); t.append(o);
     });
-    track(() => document.querySelectorAll(".hp-tt").forEach((o) => { o.parentElement?.classList.remove("hp-tt-on"); o.remove(); }));
   };
 
   const FX = {
@@ -337,8 +364,8 @@
       });
     },
 
-    // Slanted rain with a few neon-tinted drops; a pointed-at card's name, or side-drawer item (the Dashboard's menu and
-    // the main app's), "decrypts" from glyph noise; random glitch bursts.
+    // Slanted rain with a few neon-tinted drops; a pointed-at label (card, side-drawer item or header link, see label())
+    // "decrypts" from glyph noise; random glitch bursts.
     cyberpunk() {
       const { run } = canvas(1, 30);
       const drops = [];
@@ -355,17 +382,15 @@
       });
       const G = "アイウエオカキクケコサシスセソタチツテト01#$%&*<>/=+";
       on(document, "pointerover", (e) => {
-        const card = e.target.closest?.(".card, .MuiListItemButton-root");
-        if (!card || card.contains(e.relatedTarget)) return;
-        const t = card.querySelector(".cardText-first") || card.querySelector(".cardText") || card.querySelector(".MuiListItemText-primary"),
-          txt = t?.textContent?.trim();
-        if (!txt || t.dataset.scr) return;
-        const frames = 10; let f = 0;
+        const l = label(e), o = l && overlay(l);
+        if (!o) return;
+        o.classList.add("hp-tt-scr");
+        const txt = l.txt, frames = 10; let f = 0;
         const step = () => {
           f++;
           const shown = Math.floor((txt.length * f) / frames);
-          t.dataset.scr = [...txt].map((ch, i) => (i < shown || ch === " " ? ch : G[(Math.random() * G.length) | 0])).join("");
-          if (f < frames) setTimeout(step, 35); else delete t.dataset.scr;
+          o.textContent = [...txt].map((ch, i) => (i < shown || ch === " " ? ch : G[(Math.random() * G.length) | 0])).join("");
+          if (f < frames) setTimeout(step, 35); else unlay(o);
         };
         step();
       });

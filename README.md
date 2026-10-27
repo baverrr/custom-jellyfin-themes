@@ -107,6 +107,7 @@ Pick one per user in **Settings > Display > Theme**, and again under **Server Da
 | Area | What changes per theme |
 |---|---|
 | **Pages and cards** | Wallpaper and decorations, card frames and hover, section titles with their own hover animation |
+| **Hover text** | Card titles, side-drawer items and header links animate in the theme's style when pointed at (needs `effects.js`) |
 | **My Media** | Library tiles drawn in the theme's style |
 | **Loading** | Each theme draws its own loading animation |
 | **Video player** | Seek bar, buttons, play button, time readout, the "Up Next" card, subtitle typeface and outline |
